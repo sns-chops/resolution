@@ -2,7 +2,7 @@
 
 import os, numpy as np
 # datadir = os.path.expanduser('~/notebooks/ARCS')
-datadir = os.path.expanduser('~/dv/sje/sje-notebooks/ARCS')
+datadir = os.path.expanduser('~/dv/sns-chops/resolution/ARCS')
 
 
 import pandas as pd

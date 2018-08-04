@@ -1,0 +1,7 @@
+Experimental Elastic Resolution data plots
+
+* resolution-plot-dropdown.ipynb: create plotly plot with dropdown list
+* resolution-plot-v0.ipynb: first try of plotly with 
+* resolution-plot.ipynb: plotly plot with dropdown list based on ipywidgets
+* resolution_plot.py: script to create plotly plots
+* V_Cali_Int_Res_FC1_2018.dat: data file
