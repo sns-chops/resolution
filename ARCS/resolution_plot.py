@@ -38,15 +38,17 @@ class ExpData:
 
     def createPlot(self, Ei):
         condition = np.isclose(self.vdata.Energy, Ei)
-        labels = ['Chopper %s. Freq: %s' % (c, f) 
-                  for c,f in zip(self.choppers[condition], self.chopper_freqs[condition])]
+        # labels = ['Chopper %s. Freq %s' % (c, f) 
+        #          for c,f in zip(self.choppers[condition], self.chopper_freqs[condition])]
+        labels = ['Ei=%.2f; nu=%s' % (ei, f) 
+                  for ei,f in zip(self.vdata.Ei[condition], self.chopper_freqs[condition])]
         trace = go.Scatter(
             x = self.FWHM[condition],
             # y = self.vdata.Height[condition],
             y = self.intensity[condition],
             mode = 'markers+text',
             text = labels,
-            textposition='top center'
+            textposition='top center',
         )
         return trace
 
