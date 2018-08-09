@@ -34,18 +34,26 @@ class ExpData:
         self.FWHM = resolution * 2.355
         self.Ei_list = list(vdata.Energy.unique())
         return
+    
+    
+    def getDataArr(self, name):
+        if hasattr(self, name): return getattr(self, name)
+        return getattr(self.vdata, name)
 
 
-    def createPlot(self, Ei):
+    def createPlotXY(self, Ei, x, y, extra_info={}):
+        # print x,y
         condition = np.isclose(self.vdata.Energy, Ei)
-        # labels = ['Chopper %s. Freq %s' % (c, f) 
-        #          for c,f in zip(self.choppers[condition], self.chopper_freqs[condition])]
-        labels = ['Ei=%.2f; nu=%s' % (ei, f) 
-                  for ei,f in zip(self.vdata.Ei[condition], self.chopper_freqs[condition])]
+        labels = [''] * condition.sum()
+        for attr_name, (attr_label, format_str) in extra_info.iteritems():
+            fmt = '%s='+format_str
+            for i,v in enumerate(self.getDataArr(attr_name)[condition]):
+                labels[i] += fmt % (attr_label, v) + '\n'
+                continue
+            continue
         trace = go.Scatter(
-            x = self.FWHM[condition],
-            # y = self.vdata.Height[condition],
-            y = self.intensity[condition],
+            x = self.getDataArr(x)[condition],
+            y = self.getDataArr(y)[condition],
             mode = 'markers+text',
             text = labels,
             textposition='top center',
@@ -53,41 +61,4 @@ class ExpData:
         return trace
 
 
-    def createFigure(self, Ei):
-        trace = self.createPlot(Ei)
-        data = [trace]
-        layout = go.Layout(
-            title = 'Flux (peak height) vs elastic resolution (peak width). Ei=%s meV' % Ei,
-            showlegend=False,
-            xaxis=dict(
-                title='Resolution (meV)',
-            ),
-            yaxis=dict(
-                title='Flux (arb. unit)',
-            )
-        )
-        return go.Figure(data=data, layout=layout)
 
-
-    def createIntResPlot(self):
-        # Plotting widget
-        print "preparing widget..."
-        g = GraphWidget('https://plot.ly/~mcvine/2')
-
-        # Dropdown list
-        Ei_str_list = map(str, self.Ei_list)
-        initial_Ei = 100.
-        Ei_select = widgets.Dropdown(
-            options=Ei_str_list,
-            value=str(initial_Ei),
-            description='Incident energy',
-        )
-
-        def on_Ei_change(_):
-            Ei = float(Ei_select.value)
-            fig = self.createFigure(Ei)
-            g.plot(fig)
-
-        Ei_select.observe(on_Ei_change)
-        print "  done"
-        return widgets.VBox([Ei_select, g])
