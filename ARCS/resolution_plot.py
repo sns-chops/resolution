@@ -69,7 +69,7 @@ class ExpData:
         return go.Figure(data=data, layout=layout)
 
 
-    def createIntResPlot():
+    def createIntResPlot(self):
         # Plotting widget
         print "preparing widget..."
         g = GraphWidget('https://plot.ly/~mcvine/2')
@@ -85,7 +85,7 @@ class ExpData:
 
         def on_Ei_change(_):
             Ei = float(Ei_select.value)
-            fig = createFigure(Ei)
+            fig = self.createFigure(Ei)
             g.plot(fig)
 
         Ei_select.observe(on_Ei_change)
