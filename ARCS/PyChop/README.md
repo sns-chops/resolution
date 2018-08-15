@@ -1,3 +1,4 @@
+# FWHM vs E
 * PyChop
     * exploring: test-ARCS.ipynb, test-ARCS-v2.ipynb
     * arcs.yaml, arcs-v2.yaml: from Duc
@@ -10,5 +11,9 @@
     * mcvine-resolutions-Ei_100.ipynb
     * fit_and_interpolate-resolution-Ei_100.ipynb
     * res_params_interped_funcs_Ei_100.py
-* Final compare
+* Compare pychop, mcvine, and exp
     * Ei_100-Compare_PyChop_mcvine_C4H2I2S.ipynb
+* Fit PyChop to FWHM vs E
+    * optimize pychop *.ipynb
+
+
