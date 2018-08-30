@@ -54,9 +54,10 @@ class ExpData:
         trace = go.Scatter(
             x = self.getDataArr(x)[condition],
             y = self.getDataArr(y)[condition],
-            mode = 'markers+text',
+            mode = 'markers', # 'markers+text',
             text = labels,
             textposition='top center',
+            hoverinfo = 'x + y + text'
         )
         return trace
 
