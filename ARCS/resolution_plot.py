@@ -32,6 +32,7 @@ class ExpData:
         self.intensity = vdata.Height * vdata.Sigma * np.sqrt(2.*np.pi)
         self.resolution = resolution = vdata.Sigma
         self.FWHM = resolution * 2.355
+        self.FWHM_percentages = self.FWHM/vdata.Energy * 100.
         self.Ei_list = list(vdata.Energy.unique())
         return
     
@@ -41,9 +42,11 @@ class ExpData:
         return getattr(self.vdata, name)
 
 
-    def createPlotXY(self, Ei, x, y, extra_info={}):
+    def createPlotXY(self, Ei, x, y, extra_info={}, max_res_percentage=None):
         # print x,y
         condition = np.isclose(self.vdata.Energy, Ei)
+        if max_res_percentage:
+            condition = np.logical_and(condition, self.FWHM_percentages < max_res_percentage)
         labels = [''] * condition.sum()
         for attr_name, (attr_label, format_str) in extra_info.iteritems():
             fmt = '%s='+format_str
