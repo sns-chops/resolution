@@ -5,7 +5,7 @@ chopper_system:
   name: ARCS chopper system
   chop_sam: 2.0                 # Distance (x1) from final chopper to sample (m)
   sam_det: 3.0                  # Distance (x2) from sample to detector (m)
-  aperture_width: {aperture_width}  # Width of aperture at moderator face (m)
+  aperture_width: 0.1751        # Width of aperture at moderator face (m)
   aperture_height: 0.1955       # Height of aperture at moderator face (m)
   choppers:
     -                           # Each entry must have a dash on an otherwise empty line!
@@ -16,11 +16,11 @@ chopper_system:
         ARCS-100-1.5-AST:
           name: ARCS 100 meV Sloppy
           pslit: 1.52           # Neutron transparent slit width (mm)
-          pslat: 0.35           # Neutron absorbing slat width (mm)
+          pslat: 0.41           # Neutron absorbing slat width (mm)
           radius: 50.0          # Chopper package radius (mm)
           rho: 580.0            # Chopper package curvature (mm)
           tjit: 0.0             # Jitter time (us)
-          fluxcorr: 1.0         # (Empirical/Fudge) factor to scale calculated flux by
+          fluxcorr: 3.0         # (Empirical/Fudge) factor to scale calculated flux by
           isPi: False           # Should the PI pulse (at 180 deg rotation) be transmitted by this package?
         ARCS-700-1.5-AST:
           name: ARCS 700 meV Sloppy
@@ -29,7 +29,7 @@ chopper_system:
           radius: 50.0          # Chopper package radius (mm)
           rho: 1535.0           # Chopper package curvature (mm)
           tjit: 0.0             # Jitter time (us)
-          fluxcorr: 1.0         # (Empirical/Fudge) factor to scale calculated flux by
+          fluxcorr: 3.0         # (Empirical/Fudge) factor to scale calculated flux by
           isPi: False           # Should the PI pulse (at 180 deg rotation) be transmitted by this package?
         ARCS-700-0.5-AST:
           name: ARCS 700 meV Fine
@@ -38,7 +38,7 @@ chopper_system:
           radius: 50.0          # Chopper package radius (mm)
           rho: 1535.0           # Chopper package curvature (mm)
           tjit: 0.0             # Jitter time (us)
-          fluxcorr: 1.0         # (Empirical/Fudge) factor to scale calculated flux by
+          fluxcorr: 3.0         # (Empirical/Fudge) factor to scale calculated flux by
           isPi: False           # Should the PI pulse (at 180 deg rotation) be transmitted by this package?
         ARCS-100-1.5-SMI:
           name: ARCS 100 meV Sloppy
@@ -47,7 +47,7 @@ chopper_system:
           radius: 50.0          # Chopper package radius (mm)
           rho: 580.0            # Chopper package curvature (mm)
           tjit: 0.0             # Jitter time (us)
-          fluxcorr: 1.0         # (Empirical/Fudge) factor to scale calculated flux by
+          fluxcorr: 3.0         # (Empirical/Fudge) factor to scale calculated flux by
           isPi: False           # Should the PI pulse (at 180 deg rotation) be transmitted by this package?
         ARCS-700-1.5-SMI:
           name: ARCS 700 meV Sloppy
@@ -56,7 +56,7 @@ chopper_system:
           radius: 50.0          # Chopper package radius (mm)
           rho: 1535.0           # Chopper package curvature (mm)
           tjit: 0.0             # Jitter time (us)
-          fluxcorr: 1.0         # (Empirical/Fudge) factor to scale calculated flux by
+          fluxcorr: 3.0         # (Empirical/Fudge) factor to scale calculated flux by
           isPi: False           # Should the PI pulse (at 180 deg rotation) be transmitted by this package?
         SEQ-100-2.0-AST:
           name: ARCS 100 meV Sloppy
@@ -65,7 +65,7 @@ chopper_system:
           radius: 50.0          # Chopper package radius (mm)
           rho: 580.0            # Chopper package curvature (mm)
           tjit: 0.0             # Jitter time (us)
-          fluxcorr: 1.0         # (Empirical/Fudge) factor to scale calculated flux by
+          fluxcorr: 3.0         # (Empirical/Fudge) factor to scale calculated flux by
           isPi: False           # Should the PI pulse (at 180 deg rotation) be transmitted by this package?
         SEQ-700-3.5-AST:
           name: ARCS 700 meV Sloppy
@@ -74,7 +74,7 @@ chopper_system:
           radius: 50.0          # Chopper package radius (mm)
           rho: 1535.0           # Chopper package curvature (mm)
           tjit: 0.0             # Jitter time (us)
-          fluxcorr: 1.0         # (Empirical/Fudge) factor to scale calculated flux by
+          fluxcorr: 3.0         # (Empirical/Fudge) factor to scale calculated flux by
           isPi: False           # Should the PI pulse (at 180 deg rotation) be transmitted by this package?
   # Now define how the frequencies of the choppers should be related
   # This is an NxM matrix A where N is the number of choppers and M is the number of indepdent frequencies
@@ -89,9 +89,9 @@ chopper_system:
 sample: 
   name: ARCS Sample Can
   isam: 0                       # Sample type: 0==flat plate, 1==ellipse, 2==annulus, 3==sphere, 4==solid cylinder
-  sx: 2.0                       # Thickness (mm) 
-  sy: 48.0                      # Width (mm)
-  sz: 48.0                      # Height (mm)
+  sx: 0.0                       # Thickness (mm) 
+  sy: 0.0                      # Width (mm)
+  sz: 0.0                      # Height (mm)
   gamma: 0.0                    # Angle of x-axis to ki (degrees)
 
 detector:
@@ -107,12 +107,16 @@ moderator:
                                 # of the flux distribution for ISIS TS1 moderators. If measured_flux is defined below, name can be anything
   imod: 1                       # Moderator time profile type: 0==chi^2, 1==Old_Ikeda-Carpenter, 2==modified chi^2, 3==polynomial, 4==Tobyfit Ikeda-Carpenter
   mod_pars: [281.13, 79.0,      # Parameters for time profile (for I-K is: [S1, S2, B1, B2, Emod]
-             .087, .40, 172.42] #    where tau_f=1/(sqrt(Ei)*E2V*sqrt(S1^2+(S2*lam)^2), tau_s=1/B1 for E<=130meV, 1/B2 otherwise, R=exp(-Ei/Emod)
+             .087, .40, 172.42] #    where tau_f=1/(sqrt(Ei)*E2V*sqrt(S1^2+(S2*lam)^2), tau_s=B1 for E<=130meV, B2 otherwise, R=exp(-Ei/Emod)
                                 #    and the overall variance (not FWHM) is: tau^2 = 3/tau_f^2 + R/(2-R)/tau_s^2
   theta: -13.75                 # Angle beamline makes with moderator face (degrees)
   source_rep: 60                # Frequency of source (Hz)
   measured_flux:                # Table of measured flux vs wavelength. Wavelength in Angstrom. Flux in n/cm^2/s/uA/Angstrom
-    scale_factor: 1.      # A factor to scale the flux values below by
-    wavelength: [0.28601414576833351, 0.29616861080662232, 0.30668359353866664, 0.31757189355627352, 0.32884676487984915, 0.34052193209214343, 0.35261160704479783, 0.36513050615803061, 0.37809386833452097, 0.39151747350929472, 0.40541766185819367, 0.41981135368831168, 0.43471607003460611, 0.45014995398775937, 0.46613179277925221, 0.48268104065052947, 0.49981784253410028, 0.5175630585753952, 0.53593828952523304, 0.55496590303380511, 0.57466906087818581, 0.59507174715650868, 0.61619879748313355, 0.63807592922033896, 0.66072977278334122, 0.68418790405674834, 0.70847887796190545, 0.73363226321599551, 0.75967867832520353, 0.78664982885576173, 0.81457854602823976, 0.84349882668206377, 0.87344587465890866, 0.90445614365534355, 0.93656738159688513, 0.969818676587485, 1.0042505044903745, 1.0399047781981905, 1.0768248986523594, 1.1150558076738351, 1.1546440426695133, 1.1956377932809006, 1.2380869600440081, 1.2820432151318641, 1.3275600652535944, 1.3746929167866273, 1.4234991432213153, 1.4740381550000654, 1.5263714718359951, 1.5805627975991423, 1.6366780978613906, 1.6947856801944969, 1.7549562773189731, 1.8172631332050293, 1.8817820922303938, 1.9485916915035324, 2.0177732564646584, 2.0894109998808901, 2.1635921243560827, 2.2404069284800938, 2.3199489167467102, 2.4023149133740307, 2.4876051801658536, 2.5759235385575425, 2.6673774959949301, 2.762078376800098, 2.8601414576833353, 2.9616861080662242, 3.0668359353866661, 3.1757189355627351, 3.2884676487984921, 3.4052193209214345, 3.5261160704479786, 3.6513050615803064, 3.780938683345211, 3.9151747350929473, 4.0541766185819386, 4.1981135368831177, 4.3471607003460608, 4.5014995398775941, 4.6613179277925214, 4.8268104065052952, 4.9981784253410035, 5.175630585753952, 5.3593828952523292, 5.5496590303380522, 5.7466906087818588, 5.9507174715650875, 6.1619879748313364, 6.3807592922033907, 6.6072977278334157, 6.8418790405674859, 7.0847887796190561, 7.3363226321599546, 7.5967867832520346, 7.866498288557616, 8.1457854602823971, 8.4349882668206373, 8.7344587465890875, 9.0445614365534368]
-    flux: [1792.1215856505612, 3818.6255274747991, 3995.7592618681024, 4771.6828457424144, 5053.286064765216, 5247.1913453954357, 4890.7837639931122, 4593.4707450471542, 5593.4534537383151, 5491.8901203353826, 5351.3110520557493, 6669.8771696680778, 6252.1610721664929, 6617.9169345198779, 7927.8413527265175, 7223.0968115405158, 8464.1329037740543, 8796.6241239807096, 10464.359875175656, 9929.3958269376908, 11321.535508523695, 11861.362614729536, 12737.665048391922, 12364.302832039964, 12632.994890332213, 15411.840890333564, 15739.260701275816, 16023.27078436285, 18791.884217394745, 19384.309361075433, 19981.394183862645, 22146.485186755246, 25260.527425158773, 27051.635128530976, 30321.257339258227, 31850.872329107959, 34606.169023813331, 37673.763439198621, 39979.729097394273, 46120.082796334282, 47828.050595316614, 51106.692705135487, 55113.414369732724, 59289.656756253535, 63765.230136628401, 62985.977501628062, 69252.659807774922, 71168.467211180017, 72663.128325268743, 72071.86560988742, 72277.768115134866, 75042.507375179324, 76168.871830740929, 83999.349504609738, 90936.267176903348, 91276.933745206319, 80844.789464572037, 74909.855966575735, 73492.757110704988, 75740.008534007138, 77351.857701135596, 78032.112495099267, 80701.175946541291, 87262.768049167265, 94797.243049375378, 93524.967779389553, 87857.281163287727, 80707.102673149653, 74029.932105141328, 69574.50125802432, 66258.873682231075, 63122.797783216338, 60192.137670958698, 57841.864962424363, 55727.794072226701, 55239.294523518103, 56667.141267813065, 57998.755920378862, 58390.059734177514, 58099.100632521659, 57827.75120051128, 57574.689812043536, 54315.243264726101, 51135.499608113816, 48170.06003172652, 45404.481157807764, 42682.649206120506, 39238.45351814224, 36026.38509221295, 33030.799327773377, 30237.106017981292, 27631.698287103947, 25201.886317292316, 22935.83554194908, 21312.668929724063, 19909.189223123904, 18600.299351465917, 17379.624276456132, 16241.21861604508, 15179.537687034928]
+    scale_factor: 10000000      # A factor to scale the flux values below by
+    wavelength: [0.0285984265, 0.2335051748, 0.2859842653, 0.310193488, 0.3418165757, 0.3856211047, 0.4521808267, 0.4834016372,
+                 0.522133444, 0.5719685306, 0.6394802577, 0.6936137254, 0.7643250991, 0.8255654628, 0.9043616533, 0.9809179374,
+                 1.0809189212, 1.2194410046, 1.4299213265, 1.5286501982, 1.6511309256, 1.8087233066, 2.0222141331, 2.3350517482]
+    flux: [1, 1, 1.0769418795, 1.0912234366, 1.1117847541, 1.143928794, 1.201252718, 1.2318227972, 1.2731629789, 1.3321623679,
+           1.4236719322, 1.5075346925, 1.6322258496, 1.7551658109, 1.9353360797, 2.1356198518, 2.4386575654, 2.9461376015,
+           3.8879041876, 4.331779711, 4.8546361998, 5.4701373626, 6.1966620127, 7.3007339739]
 

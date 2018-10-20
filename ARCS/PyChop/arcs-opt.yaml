@@ -5,7 +5,7 @@ chopper_system:
   name: ARCS chopper system
   chop_sam: 2.0                 # Distance (x1) from final chopper to sample (m)
   sam_det: 3.0                  # Distance (x2) from sample to detector (m)
-  aperture_width: {aperture_width}  # Width of aperture at moderator face (m)
+  aperture_width: 0.1751  # Width of aperture at moderator face (m)
   aperture_height: 0.1955       # Height of aperture at moderator face (m)
   choppers:
     -                           # Each entry must have a dash on an otherwise empty line!
