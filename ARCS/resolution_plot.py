@@ -42,11 +42,13 @@ class ExpData:
         return getattr(self.vdata, name)
 
 
-    def createPlotXY(self, Ei, x, y, extra_info={}, max_res_percentage=None):
+    def createPlotXY(self, Ei, x, y, extra_info={}, max_res_percentage=None, extra_condition=None):
         # print x,y
         condition = np.isclose(self.vdata.Energy, Ei)
         if max_res_percentage:
             condition = np.logical_and(condition, self.FWHM_percentages < max_res_percentage)
+        if extra_condition is not None:
+            condition = np.logical_and(condition, extra_condition)
         labels = [''] * condition.sum()
         for attr_name, (attr_label, format_str) in extra_info.iteritems():
             fmt = '%s='+format_str
