@@ -38,7 +38,8 @@ chopper_system:
       name: CNCS Chopper 4 
       distance: 34.785          # Distance from moderator to this chopper in metres
       slot_width: 44.38         # Slot width in mm
-      guide_width: 59           # Width of guide after chopper in mm
+#      guide_width: 59           # Width of guide after chopper in mm
+      guide_width: 19           # Width of guide after chopper in mm
       nslot: 1                  # Number of slots. (Assume all slots equally spaced)
       radius: 282.5             # Disk radius
       isDouble: True            # Is this a double disk system?
