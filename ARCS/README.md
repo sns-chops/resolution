@@ -1,5 +1,7 @@
 Experimental Elastic Resolution data plots
 
+* resolution-plot-dropdown-data_v3-including PyChop: not completed
+* resolution-plot-dropdown-data_v2-for-arcs-pages-resolution-site.ipynb: arcs.pages web site plots
 * resolution-plot-dropdown.ipynb: create plotly plot with dropdown list
 * resolution-plot-v0.ipynb: first try of plotly with 
 * resolution-plot.ipynb: plotly plot with dropdown list based on ipywidgets. it only works with resolution_plot_v1.py
