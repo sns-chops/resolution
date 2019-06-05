@@ -9,7 +9,7 @@ import dash.dependencies as dd
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-
+app.title = "ARCS resolution"
 
 import numpy as np
 import arcsmodel
