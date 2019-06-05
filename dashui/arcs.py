@@ -1,7 +1,10 @@
 # to run, add parent directory of PyChop to PYTHONPATH
 # then $ python {thisfile}
+#
+# Main app: http://localhost:8050/
+# Download: http://localhost:8050/download?chopper_select=ARCS-100-1.5-AST&chopper_freq=600&Ei=100
 
-import dash
+import dash, flask, io
 import dash_core_components as dcc
 import dash_html_components as html
 import dash.dependencies as dd
@@ -85,9 +88,8 @@ app.layout = html.Div(children=[
     ]
     )
 def update_output_div(chopper_select, chopper_freq, Ei):
-    E = np.linspace(-Ei*.2, Ei*.95, 100)
     try:
-        res = arcsmodel.res_vs_E(E, chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
+        E, res = get_data(chopper_select, chopper_freq, Ei)
     except Exception as e:
         status = str(e)
         curve = {}
@@ -103,5 +105,37 @@ def update_output_div(chopper_select, chopper_freq, Ei):
         status = ''
     return curve, status
 
+def get_data(chopper_select, chopper_freq, Ei):
+    E = np.linspace(-Ei*.2, Ei*.95, 100)
+    res = arcsmodel.res_vs_E(E, chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
+    return E, res
+
+@app.server.route('/download')
+def download_csv():
+    d = {}
+    keys = ['chopper_select', 'chopper_freq', 'Ei']
+    for k in keys:
+        value = flask.request.args.get(k)
+        try: value = float(value)
+        except: pass
+        d[k] = value
+    E, res = get_data(**d)
+    return send_file(np.array([E,res]).T, "resolution.csv")
+    
+    
+
+def send_file(nparr, filename):
+    str_io = io.StringIO()
+    np.savetxt(str_io, nparr, delimiter=',')
+    mem = io.BytesIO()
+    mem.write(str_io.getvalue().encode('utf-8'))
+    mem.seek(0)
+    str_io.close()
+    return flask.send_file(
+        mem,
+        mimetype='text/csv',
+        attachment_filename=filename,
+        as_attachment=True)
+                                                                
 if __name__ == '__main__':
     app.run_server(debug=True)
