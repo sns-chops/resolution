@@ -103,7 +103,13 @@ def update_output_div(chopper_select, chopper_freq, Ei):
                 {'x': E, 'y': res, 'type': 'point', 'name': 'resolution'},
             ],
             'layout': {
-                'title': 'ARCS resolution'
+                # 'title': '',
+                'xaxis':{
+                    'title':'E (meV)'
+                },
+                'yaxis':{
+                    'title':'FWHM (meV)'
+                }
             }
         }
         status = ''
