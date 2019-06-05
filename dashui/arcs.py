@@ -75,12 +75,15 @@ app.layout = html.Div(children=[
         ),
     ], style=dict(width="40em")),
 
-    html.Div(id='status', children=''),    
+    html.Div(id='status', children=''),
+
+    html.A(html.Button('Download', id='download-button'), id='download-link'),
 ])
 
 @app.callback(
     [dd.Output(component_id='arcs-res_vs_E', component_property='figure'),
      dd.Output(component_id='status', component_property='children'),
+     dd.Output('download-link', 'href'),
     ],
     [dd.Input(component_id='chopper_select', component_property='value'),
      dd.Input(component_id='chopper_freq', component_property='value'),
@@ -93,6 +96,7 @@ def update_output_div(chopper_select, chopper_freq, Ei):
     except Exception as e:
         status = str(e)
         curve = {}
+        downloadlink = ''
     else:
         curve = {
             'data': [
@@ -103,7 +107,9 @@ def update_output_div(chopper_select, chopper_freq, Ei):
             }
         }
         status = ''
-    return curve, status
+        downloadlink = '/download?chopper_select=%s&chopper_freq=%s&Ei=%s' % (
+            chopper_select, chopper_freq, Ei)
+    return curve, status, downloadlink
 
 def get_data(chopper_select, chopper_freq, Ei):
     E = np.linspace(-Ei*.2, Ei*.95, 100)
