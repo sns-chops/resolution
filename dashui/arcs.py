@@ -1,3 +1,6 @@
+# to run, add parent directory of PyChop to PYTHONPATH
+# then $ python {thisfile}
+
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
