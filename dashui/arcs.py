@@ -126,8 +126,8 @@ def download_csv():
         except: pass
         d[k] = value
     E, res = get_data(**d)
-    return send_file(np.array([E,res]).T, "resolution.csv")
-    
+    filename = "arcs_res_{chopper_select}_{chopper_freq}_Ei_{Ei}.csv".format(**d)
+    return send_file(np.array([E,res]).T, filename)
     
 
 def send_file(nparr, filename):
