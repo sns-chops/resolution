@@ -53,6 +53,7 @@ app.layout = html.Div(children=[
     dcc.Markdown('''
 This application calculates energy resolution (FWHM) as a function of energy transfer for the ARCS instrument
 using [PyChop](https://docs.mantidproject.org/nightly/interfaces/PyChop.html).
+The sample was assumed to be a plate of 2mm thickness and 48mm width and height.
     '''),
 
     # input fields
