@@ -186,6 +186,15 @@ def send_file(nparr, filename):
         mimetype='text/csv',
         attachment_filename=filename,
         as_attachment=True)
-                                                                
-if __name__ == '__main__':
-    app.run_server(debug=True)
+
+
+def main():
+    import sys
+    if len(sys.argv)>1 and sys.argv[1] == 'debug':
+        app.run_server(debug=True)
+    else:
+        from waitress import serve
+        serve(app.server, host='0.0.0.0', port=8050)
+    
+if __name__ == '__main__': main()
+
