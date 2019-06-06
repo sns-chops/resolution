@@ -50,8 +50,9 @@ FC_widget_elements = [
 app.layout = html.Div(children=[
     html.H1(children='ARCS inelastic resolution'),
 
-    html.Div(children='''
-        This application calculates energy resolution (FWHM) as a function of energy transfer for the ARCS instrument
+    dcc.Markdown('''
+This application calculates energy resolution (FWHM) as a function of energy transfer for the ARCS instrument
+using [PyChop](https://docs.mantidproject.org/nightly/interfaces/PyChop.html).
     '''),
 
     # input fields
