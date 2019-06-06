@@ -65,8 +65,12 @@ app.layout = html.Div(children=[
     # calculate button
     html.Div([html.Button('Calculate', id='calculate-button')], style=dict(padding='1em')),
 
+    # info
+    dcc.Markdown('', id='info'),
+
     # plot
     dcc.Markdown('''
+### Plot
 The plot below is an interactive plot.ly plot.
 
 * You can drag a rectangle to zoom in
@@ -98,6 +102,7 @@ The plot below is an interactive plot.ly plot.
     [dd.Output(component_id='arcs-res_vs_E', component_property='figure'),
      dd.Output(component_id='status', component_property='children'),
      dd.Output('download-link', 'href'),
+     dd.Output('info', 'children'),
     ],
     [dd.Input('calculate-button', 'n_clicks'),
      ],
@@ -114,6 +119,7 @@ def update_output_div(n_clicks, chopper_select, chopper_freq, Ei):
         status = str(e)
         curve = {}
         downloadlink = ''
+        info = ''
     else:
         curve = {
             'data': [
@@ -135,7 +141,17 @@ def update_output_div(n_clicks, chopper_select, chopper_freq, Ei):
             status = ''
         downloadlink = '/download?chopper_select=%s&chopper_freq=%s&Ei=%s' % (
             chopper_select, chopper_freq, Ei)
-    return curve, status, downloadlink
+        elastic_res = arcsmodel.res_vs_E([0.], chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)[0]
+        info = info_format_str.format(el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei)
+    return curve, status, downloadlink, info
+
+info_format_str = '''
+### Basics
+
+* Incident energy: {Ei} meV
+* Elastic resolution: {el_res:.5f} meV
+* Elastic resolution percentage: {el_res_percentage:.2f}%
+'''
 
 def get_data(chopper_select, chopper_freq, Ei):
     E = np.linspace(-Ei*.2, Ei*.95, 100)
