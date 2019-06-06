@@ -66,6 +66,8 @@ The sample was assumed to be a plate of 2mm thickness and 48mm width and height.
 
     # calculate button
     html.Div([html.Button('Calculate', id='calculate-button')], style=dict(padding='1em')),
+    # status
+    html.Div(id='status', children='', style=dict(padding='1em', color='red')),
 
     # info
     dcc.Markdown('', id='info'),
@@ -92,9 +94,6 @@ The plot below is an interactive plot.ly plot.
             }
         ),
     ], style=dict(width="40em")),
-
-    # status
-    html.Div(id='status', children='', style=dict(padding='1em', color='red')),
 
     # download button
     html.A(html.Button('Download', id='download-button'), id='download-link'),
@@ -139,12 +138,14 @@ def update_output_div(n_clicks, chopper_select, chopper_freq, Ei):
         }
         if (res!=res).any():
             status = "No transmission"
+            downloadlink = ''
+            info = ''
         else:
             status = ''
-        downloadlink = '/download?chopper_select=%s&chopper_freq=%s&Ei=%s' % (
-            chopper_select, chopper_freq, Ei)
-        elastic_res = arcsmodel.res_vs_E([0.], chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)[0]
-        info = info_format_str.format(el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei)
+            downloadlink = '/download?chopper_select=%s&chopper_freq=%s&Ei=%s' % (
+                chopper_select, chopper_freq, Ei)
+            elastic_res = arcsmodel.res_vs_E([0.], chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)[0]
+            info = info_format_str.format(el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei)
     return curve, status, downloadlink, info
 
 info_format_str = '''
