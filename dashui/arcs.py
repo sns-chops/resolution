@@ -54,13 +54,18 @@ app.layout = html.Div(children=[
         This application calculates energy resolution (FWHM) as a function of energy transfer for the ARCS instrument
     '''),
 
+    # input fields
     html.Table([
         html.Tr([
             html.Td(Ei_widget_elements),
-            html.Td(FC_widget_elements, style=dict(width="20em"))
+            html.Td(FC_widget_elements, style=dict(width="20em")),
         ])
     ]),
 
+    # calculate button
+    html.Div([html.Button('Calculate', id='calculate-button')], style=dict(padding='1em')),
+
+    # plot
     html.Div([
         dcc.Graph(
             id='arcs-res_vs_E',
@@ -75,8 +80,10 @@ app.layout = html.Div(children=[
         ),
     ], style=dict(width="40em")),
 
+    # status
     html.Div(id='status', children=''),
 
+    # download button
     html.A(html.Button('Download', id='download-button'), id='download-link'),
 ])
 
@@ -85,12 +92,15 @@ app.layout = html.Div(children=[
      dd.Output(component_id='status', component_property='children'),
      dd.Output('download-link', 'href'),
     ],
-    [dd.Input(component_id='chopper_select', component_property='value'),
-     dd.Input(component_id='chopper_freq', component_property='value'),
-     dd.Input(component_id='Ei_input', component_property='value'),
+    [dd.Input('calculate-button', 'n_clicks'),
+     ],
+    [
+     dd.State(component_id='chopper_select', component_property='value'),
+     dd.State(component_id='chopper_freq', component_property='value'),
+     dd.State(component_id='Ei_input', component_property='value'),
     ]
     )
-def update_output_div(chopper_select, chopper_freq, Ei):
+def update_output_div(n_clicks, chopper_select, chopper_freq, Ei):
     try:
         E, res = get_data(chopper_select, chopper_freq, Ei)
     except Exception as e:
