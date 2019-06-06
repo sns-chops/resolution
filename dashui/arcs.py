@@ -66,6 +66,13 @@ app.layout = html.Div(children=[
     html.Div([html.Button('Calculate', id='calculate-button')], style=dict(padding='1em')),
 
     # plot
+    dcc.Markdown('''
+The plot below is an interactive plot.ly plot.
+
+* You can drag a rectangle to zoom in
+* There are several icons near the top-right corner on each plot.ly plot as you hover your mouse on top of the plot, including an icon to zoom out
+* Hover the mouse over any data point to show more information related to the data point
+    '''),
     html.Div([
         dcc.Graph(
             id='arcs-res_vs_E',
