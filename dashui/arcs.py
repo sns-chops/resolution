@@ -12,7 +12,7 @@ import dash.dependencies as dd
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-app.title = "ARCS resolution"
+app.title = "ARCS inelastic resolution"
 
 import numpy as np
 import arcsmodel
@@ -48,10 +48,10 @@ FC_widget_elements = [
 ]
 
 app.layout = html.Div(children=[
-    html.H1(children='ARCS resolution'),
+    html.H1(children='ARCS inelastic resolution'),
 
     html.Div(children='''
-        This application calculates energy resolution for the ARCS instrument
+        This application calculates energy resolution (FWHM) as a function of energy transfer for the ARCS instrument
     '''),
 
     html.Table([
