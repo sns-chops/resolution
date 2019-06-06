@@ -81,7 +81,7 @@ app.layout = html.Div(children=[
     ], style=dict(width="40em")),
 
     # status
-    html.Div(id='status', children=''),
+    html.Div(id='status', children='', style=dict(padding='1em', color='red')),
 
     # download button
     html.A(html.Button('Download', id='download-button'), id='download-link'),
@@ -122,7 +122,10 @@ def update_output_div(n_clicks, chopper_select, chopper_freq, Ei):
                 }
             }
         }
-        status = ''
+        if (res!=res).any():
+            status = "No transmission"
+        else:
+            status = ''
         downloadlink = '/download?chopper_select=%s&chopper_freq=%s&Ei=%s' % (
             chopper_select, chopper_freq, Ei)
     return curve, status, downloadlink
