@@ -12,11 +12,17 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash.dependencies as dd
 
-from . import inelastic
+from . import inelastic, elastic
 
 def build_interface(app):
     inel_div = inelastic.build_interface(app)
-    return inel_div
+    el_div = elastic.build_interface(app)
+    return html.Div([
+        dcc.Tabs(id="tabs", children=[
+            dcc.Tab(label='Elastic', children=[el_div]),
+            dcc.Tab(label='Inelastic', children=[inel_div]),
+            ])
+        ])
 
 def build_callbacks(app):
     return inelastic.build_callbacks(app)
