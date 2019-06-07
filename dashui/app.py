@@ -5,7 +5,18 @@
 # Download: http://localhost:8050/download?chopper_select=ARCS-100-1.5-AST&chopper_freq=600&Ei=100
 
 
-from arcs import app
+import dash, flask, io
+import dash_core_components as dcc
+import dash_html_components as html
+import dash.dependencies as dd
+
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app.title = "ARCS inelastic resolution"
+
+import arcs
+arcs.build_interface(app)
 
 def main():
     import sys
