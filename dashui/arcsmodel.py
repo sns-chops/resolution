@@ -15,7 +15,6 @@ def res_vs_E(E, chopper='ARCS-100-1.5-SMI', chopper_freq=600., Ei=100.):
     res, flux = instrument.getResFlux(Etrans=E, Ei_in=Ei)
     return res
 
-
 def main():
     E = np.arange(0., 100., 5.)
     res = res_vs_E(E)

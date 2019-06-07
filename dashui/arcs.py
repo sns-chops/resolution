@@ -16,8 +16,6 @@ app.title = "ARCS inelastic resolution"
 
 import numpy as np
 import arcsmodel
-E = np.arange(-20, 100., 2.)
-res = arcsmodel.res_vs_E(E)
 
 chopper_freqs = range(120, 601, 120)
 chopper_freq_opts = [dict(label=str(f), value=f) for f in chopper_freqs]
@@ -60,7 +58,7 @@ The sample was assumed to be a plate of 2mm thickness and 48mm width and height.
     html.Table([
         html.Tr([
             html.Td(Ei_widget_elements),
-            html.Td(FC_widget_elements, style=dict(width="20em")),
+            html.Td(FC_widget_elements, style=dict(width="14em")),
         ])
     ]),
 
@@ -84,19 +82,13 @@ The plot below is an interactive plot.ly plot.
     html.Div([
         dcc.Graph(
             id='arcs-res_vs_E',
-            figure={
-                'data': [
-                    {'x': E, 'y': res, 'type': 'point', 'name': 'resolution'},
-                ],
-                'layout': {
-                    'title': ''
-                }
-            }
         ),
     ], style=dict(width="40em")),
 
     # download button
     html.A(html.Button('Download', id='download-button'), id='download-link'),
+
+    # 
 ])
 
 @app.callback(
