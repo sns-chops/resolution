@@ -12,4 +12,11 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash.dependencies as dd
 
-from .inelastic import build_interface, build_callbacks
+from . import inelastic
+
+def build_interface(app):
+    inel_div = inelastic.build_interface(app)
+    return inel_div
+
+def build_callbacks(app):
+    return inelastic.build_callbacks(app)
