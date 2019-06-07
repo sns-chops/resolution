@@ -25,4 +25,6 @@ def build_interface(app):
         ])
 
 def build_callbacks(app):
-    return inelastic.build_callbacks(app)
+    elastic.build_callbacks(app)
+    inelastic.build_callbacks(app)
+    return

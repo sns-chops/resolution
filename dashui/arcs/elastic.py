@@ -17,34 +17,30 @@ from . import model as arcsmodel
 
 import resolution_plot
 fc1data = resolution_plot.ExpData(os.path.join(here, '../../ARCS//V_Cali_Int_Res_FC1_2018_v2.dat'))
+fc2data = resolution_plot.ExpData(os.path.join(here, '../../ARCS/V_Cali_Int_Res_FC2_2018_v2.dat'))
+fc1_highres_data = resolution_plot.ExpData(os.path.join(here, '../../ARCS/V_Cali_Int_Res_FC1_HighRes_2018_v2.dat'))
+vscatt_scale = 2.6e4
+vscatt_scale *=60./1.4
+vscatt_scale *= 1.5/2
+fc1data.intensity *= vscatt_scale
+fc2data.intensity *= vscatt_scale
+fc1_highres_data.intensity *= vscatt_scale
+min_flux = 10000
 
-chopper_freqs = range(120, 601, 120)
-chopper_freq_opts = [dict(label=str(f), value=f) for f in chopper_freqs]
+unique_nominal_Eis = set( list(fc1data.Ei_list) + list(fc2data.Ei_list) + list(fc1_highres_data.Ei_list) )
+unique_nominal_Eis = sorted(list(unique_nominal_Eis))
+
+Ei_select = dcc.Dropdown(
+    id='Ei_select',
+    value=100.,
+    options = [dict(label=str(_), value=_) for _ in unique_nominal_Eis],
+)
 
 Ei_widget_elements = [
     html.Label('Incident energy (meV)'),
-    dcc.Input(id='Ei_input', type='number', value=100.),
+    Ei_select,
 ]
 
-FC_widget_elements = [
-    html.Label('Fermi chopper'),
-    dcc.Dropdown(
-        id='chopper_select',
-        options = [
-            dict(label='ARCS-100-1.5-AST', value='ARCS-100-1.5-AST'),
-            dict(label='ARCS-700-1.5-AST', value='ARCS-700-1.5-AST'),
-            dict(label='ARCS-700-0.5-AST', value='ARCS-700-0.5-AST'),
-            # dict(label='ARCS-100-1.5-SMI', value='ARCS-100-1.5-SMI'),
-            # dict(label='ARCS-700-1.5-SMI', value='ARCS-700-1.5-SMI'),
-            #dict(label='SEQ-100-2.0-AST', value='SEQ-100-2.0-AST'),
-            #dict(label='SEQ-700-3.5-AST', value='SEQ-700-3.5-AST'),
-        ],
-        value = 'ARCS-100-1.5-AST',
-    ),
-
-    html.Label('Fermi chopper frequency'),
-    dcc.Dropdown(id='chopper_freq', value=600, options=chopper_freq_opts),
-]
 
 def build_interface(app):
     return html.Div(children=[
@@ -54,9 +50,55 @@ def build_interface(app):
 Experimental data
         '''),
 
-        dcc.Graph(figure={'data': [fc1data.createPlotXY(100., 'FWHM', 'intensity')]}),
+        html.Div(Ei_widget_elements, style=dict(width="10em")),
+        html.Div([
+            dcc.Graph(
+                id='arcs-flux_vs_fwhm',
+            ),
+        ], style=dict(width="40em")),
     ])
 
 
+extra_info = dict(
+        chopper_freqs = ('nu', '%sHz'),
+        FWHM_percentages = ('Resolution percentage', '%.1f%%')
+    )
+max_res_percentage = 15.
+plot_opts = dict(extra_info=extra_info, max_res_percentage=max_res_percentage)
+
+def getFlux_vs_FWHMdata(data, Ei, name):
+    plot_opts1 = dict(plot_opts)
+    plot_opts1.update(extra_condition = (data.intensity>min_flux))
+    plot =  data.createPlotXY(Ei, 'FWHM', 'intensity', **plot_opts1)
+    plot.name = name
+    return plot
+
 def build_callbacks(app):
+    @app.callback(
+        [dd.Output(component_id='arcs-flux_vs_fwhm', component_property='figure'),
+        ],
+        [dd.Input('Ei_select', 'value'),
+        ],
+    )
+    def update_figure(Ei):
+        Ei = float(Ei)
+        
+        data = [
+            getFlux_vs_FWHMdata(fc1data, Ei, 'ARCS-700-1.5'),
+            getFlux_vs_FWHMdata(fc2data, Ei, 'ARCS-100-1.5'),
+            getFlux_vs_FWHMdata(fc1_highres_data, Ei, 'ARCS-700-0.5'),
+        ]
+        return {
+            'data': data,
+            'layout': dict(
+                xaxis=dict(
+                    title='FWHM (meV)',
+                    showspikes=True,
+                ),
+                yaxis=dict(
+                    title='Flux (arb. unit)',
+                    showspikes=True,
+                ),
+            ),
+        },
     return
