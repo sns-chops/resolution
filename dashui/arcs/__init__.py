@@ -4,6 +4,9 @@
 # Main app: http://localhost:8050/
 # Download: http://localhost:8050/download?chopper_select=ARCS-100-1.5-AST&chopper_freq=600&Ei=100
 
+import os, sys
+here = os.path.abspath(os.path.dirname(__file__))
+
 import dash, flask, io
 import dash_core_components as dcc
 import dash_html_components as html
@@ -15,7 +18,10 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "ARCS inelastic resolution"
 
 import numpy as np
-import arcsmodel
+from . import model as arcsmodel
+# import resolution_plot
+# 
+# fc1data = resolution_plot.ExpData(os.path.join(here, '../../ARCS//V_Cali_Int_Res_FC1_2018_v2.dat'))
 
 chopper_freqs = range(120, 601, 120)
 chopper_freq_opts = [dict(label=str(f), value=f) for f in chopper_freqs]
@@ -88,7 +94,8 @@ The plot below is an interactive plot.ly plot.
     # download button
     html.A(html.Button('Download', id='download-button'), id='download-link'),
 
-    # 
+    #
+    # dcc.Graph(figure={'data': [fc1data.createPlotXY(100., 'FWHM', 'intensity')]}),
 ])
 
 @app.callback(

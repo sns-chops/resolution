@@ -7,7 +7,7 @@ import numpy as np
 
 from PyChop import PyChop2
 
-yamlpath = os.path.join(here, '../ARCS/PyChop/arcs-opt.yaml')
+yamlpath = os.path.join(here, '../../ARCS/PyChop/arcs-opt.yaml')
 
 
 def res_vs_E(E, chopper='ARCS-100-1.5-SMI', chopper_freq=600., Ei=100.):

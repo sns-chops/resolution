@@ -1,2 +1,2 @@
 export PYTHONPATH=/SNS/users/lj7/dv/
-python arcs.py
+python app.py
