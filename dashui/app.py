@@ -16,7 +16,8 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "ARCS inelastic resolution"
 
 import arcs
-arcs.build_interface(app)
+app.layout = arcs.build_interface(app)
+arcs.build_callbacks(app)
 
 def main():
     import sys

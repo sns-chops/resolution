@@ -47,7 +47,7 @@ FC_widget_elements = [
 ]
 
 def build_interface(app):
-    app.layout = html.Div(children=[
+    return html.Div(children=[
         html.H1(children='ARCS inelastic resolution'),
 
         dcc.Markdown('''
@@ -94,6 +94,8 @@ The plot below is an interactive plot.ly plot.
         # dcc.Graph(figure={'data': [fc1data.createPlotXY(100., 'FWHM', 'intensity')]}),
     ])
 
+
+def build_callbacks(app):
     @app.callback(
         [dd.Output(component_id='arcs-res_vs_E', component_property='figure'),
          dd.Output(component_id='status', component_property='children'),
