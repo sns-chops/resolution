@@ -17,10 +17,8 @@ def build_interface(app):
 This page displays resolution data from experimental measurements and analytical models.
 
 * The experimental data was obtained by measuring the vanadium standard sample. 
-  For more details, see https://doi.org/10.1016/j.physb.2018.11.027
 * The modeled data was obtained from a 
   [PyChop](https://docs.mantidproject.org/nightly/interfaces/PyChop.html) model.
-  The sample was assumed to be a plate of 2mm thickness and 48mm width and height.
                 '''),
         dcc.Markdown('''
 ##### Plots
