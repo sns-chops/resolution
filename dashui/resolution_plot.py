@@ -15,10 +15,10 @@ class ExpData:
     
     def __init__(self, datafile=os.path.join(datadir, './V_Cali_Int_Res_FC1_2018.dat')):
         # read data
-        print "reading data. please wait..."
+        print( "reading data. please wait...")
         vdata = self.vdata = pd.read_csv(datafile, delimiter=' ')
         # vtable = ff.create_table(vdata)
-        print "  done"
+        print("  done")
         self.choppers = choppers = np.array(vdata.Chopper, dtype=int)
         self.chopper_freqs = np.array([getattr(vdata, "Chopper%d"%c)[i] for i, c in enumerate(choppers)])
         self.intensity = vdata.Height * vdata.Sigma * np.sqrt(2.*np.pi)
@@ -42,7 +42,7 @@ class ExpData:
         if extra_condition is not None:
             condition = np.logical_and(condition, extra_condition)
         labels = [''] * condition.sum()
-        for attr_name, (attr_label, format_str) in extra_info.iteritems():
+        for attr_name, (attr_label, format_str) in extra_info.items():
             fmt = '%s='+format_str
             for i,v in enumerate(self.getDataArr(attr_name)[condition]):
                 labels[i] += fmt % (attr_label, v) + '\n'
