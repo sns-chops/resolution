@@ -11,6 +11,7 @@ import dash_html_components as html
 import dash.dependencies as dd
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+# external_stylesheets = ['https://codepen.io/chriddyp/pen/gzRdpr.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "ARCS inelastic resolution"

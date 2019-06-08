@@ -22,14 +22,14 @@ chopper_freq_opts = [dict(label=str(f), value=f) for f in chopper_freqs]
 # select Ei
 Ei_widget_elements = [
     html.Label('Incident energy (meV)'),
-    dcc.Input(id='Ei_input', type='number', value=100.),
+    dcc.Input(id='arcs_Ei_input', type='number', value=100.),
 ]
 
 # select FC
 FC_widget_elements = [
     html.Label('Fermi chopper'),
     dcc.Dropdown(
-        id='chopper_select',
+        id='arcs_chopper_select',
         options = [
             dict(label='ARCS-100-1.5-AST', value='ARCS-100-1.5-AST'),
             dict(label='ARCS-700-1.5-AST', value='ARCS-700-1.5-AST'),
@@ -43,7 +43,7 @@ FC_widget_elements = [
     ),
 
     html.Label('Fermi chopper frequency'),
-    dcc.Dropdown(id='chopper_freq', value=600, options=chopper_freq_opts),
+    dcc.Dropdown(id='arcs_chopper_freq', value=600, options=chopper_freq_opts),
 ]
 
 def build_interface(app):
@@ -58,14 +58,14 @@ def build_interface(app):
         ]),
 
         # calculate button
-        html.Div([html.Button('Calculate', id='calculate-button')], style=dict(padding='1em')),
+        html.Div([html.Button('Calculate', id='arcs-calculate-button')], style=dict(padding='1em')),
         # status
-        html.Div(id='status', children='', style=dict(padding='1em', color='red')),
+        html.Div(id='arcs-status', children='', style=dict(padding='1em', color='red')),
 
         # info
         html.Details([
             html.Summary('Summary'),
-            dcc.Markdown('', id='info'),
+            dcc.Markdown('', id='arcs-info'),
         ]),
 
         # plot
@@ -76,7 +76,7 @@ def build_interface(app):
         ], style=dict(width="40em", margin='.3em')),
 
         # download button
-        html.A(html.Button('Download', id='download-button'), id='download-link'),
+        html.A(html.Button('Download', id='download-button'), id='arcs-download-link'),
 
     ])
 
@@ -84,16 +84,16 @@ def build_interface(app):
 def build_callbacks(app):
     @app.callback(
         [dd.Output(component_id='arcs-res_vs_E', component_property='figure'),
-         dd.Output(component_id='status', component_property='children'),
-         dd.Output('download-link', 'href'),
-         dd.Output('info', 'children'),
+         dd.Output(component_id='arcs-status', component_property='children'),
+         dd.Output('arcs-download-link', 'href'),
+         dd.Output('arcs-info', 'children'),
         ],
-        [dd.Input('calculate-button', 'n_clicks'),
+        [dd.Input('arcs-calculate-button', 'n_clicks'),
          ],
         [
-         dd.State(component_id='chopper_select', component_property='value'),
-         dd.State(component_id='chopper_freq', component_property='value'),
-         dd.State(component_id='Ei_input', component_property='value'),
+         dd.State(component_id='arcs_chopper_select', component_property='value'),
+         dd.State(component_id='arcs_chopper_freq', component_property='value'),
+         dd.State(component_id='arcs_Ei_input', component_property='value'),
         ]
         )
     def update_output_div(n_clicks, chopper_select, chopper_freq, Ei):
