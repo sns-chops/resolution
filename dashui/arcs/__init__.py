@@ -43,8 +43,8 @@ The plots below are interactive plot.ly plots.
             ])
         ]),
         dcc.Tabs(id="tabs", children=[
-            dcc.Tab(label='Elastic', children=[el_div]),
             dcc.Tab(label='Inelastic', children=[inel_div]),
+            dcc.Tab(label='Elastic', children=[el_div]),
             ])
         ])
 
