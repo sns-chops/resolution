@@ -13,7 +13,7 @@ import dash_html_components as html
 import dash.dependencies as dd
 
 import numpy as np
-from . import model as arcsmodel
+from . import model as arcsmodel, exp
 
 # chopper freqs
 chopper_freqs = range(120, 601, 120)
@@ -127,8 +127,17 @@ def build_callbacks(app):
                 status = ''
                 downloadlink = '/download?chopper_select=%s&chopper_freq=%s&Ei=%s' % (
                     chopper_select, chopper_freq, Ei)
-                elastic_res = arcsmodel.res_vs_E([0.], chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)[0]
-                summary = summary_format_str.format(el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei)
+                elastic_res,flux = arcsmodel.elastic_res_flux(chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
+                data = exp.data[chopper_select]
+                indexes = (np.where(np.isclose(data.vdata.Energy, Ei) * np.isclose(data.chopper_freqs, chopper_freq)))[0]
+                if len(indexes):
+                    index = indexes[0]
+                    # print(data.FWHM[index])
+                    flux = '%g (PyChop); %g (Experiment)' % (flux, data.intensity[index])
+                else:
+                    flux = '%g (PyChop)' % flux
+                summary = summary_format_str.format(
+                    el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei, flux=flux)
         return curve, status, downloadlink, summary
 
     @app.server.route('/download')
@@ -150,6 +159,7 @@ summary_format_str = '''
 * Incident energy: {Ei} meV
 * Elastic resolution: {el_res:.3f} meV
 * Elastic resolution percentage: {el_res_percentage:.2f}%
+* Flux: {flux} counts/s/cm^2/MW
 '''
 
 def get_data(chopper_select, chopper_freq, Ei):

@@ -12,3 +12,9 @@ vscatt_scale *= 1.5/2
 fc1data.intensity *= vscatt_scale
 fc2data.intensity *= vscatt_scale
 fc1_highres_data.intensity *= vscatt_scale
+
+data = {
+    'ARCS-700-1.5-AST': fc1data,
+    'ARCS-100-1.5-AST': fc2data,
+    'ARCS-700-0.5-AST': fc1_highres_data,
+}
