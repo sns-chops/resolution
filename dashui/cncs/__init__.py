@@ -10,7 +10,7 @@ from . import inelastic, elastic
 
 def build_interface(app):
     inel_div = inelastic.build_interface(app)
-    # el_div = elastic.build_interface(app)
+    el_div = elastic.build_interface(app)
     inel_div.style = dict(border="1px solid lightgray", padding='1em')
     return html.Div([
         html.H1(children='CNCS resolution'),
@@ -37,11 +37,11 @@ The plots below are interactive plot.ly plots.
         ]),
         dcc.Tabs(children=[
             dcc.Tab(label='Inelastic', children=[inel_div]),
-            # dcc.Tab(label='Elastic', children=[el_div]),
+            dcc.Tab(label='Elastic', children=[el_div]),
             ])
     ])
 
 def build_callbacks(app):
-    # elastic.build_callbacks(app)
+    elastic.build_callbacks(app)
     inelastic.build_callbacks(app)
     return

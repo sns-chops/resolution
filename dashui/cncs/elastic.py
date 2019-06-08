@@ -7,60 +7,52 @@ import dash_html_components as html
 import dash.dependencies as dd
 
 import numpy as np
-from . import model as sequoiamodel, exp
+from . import model as cncsmodel, exp
 
 
-min_flux = 10
+chopper_modes = [
+    'High Resolution',
+    'Intermediate',
+    'High Intensity',
+]
 
 # interface
 def build_interface(app):
-    # select Ei
-    Ei_select = dcc.Dropdown(
-        id='sequoia_Ei_select',
-        value=100.,
-        options = [dict(label=str(_), value=_) for _ in exp.good_Eis],
+    # select chopper mode
+    chopper_mode = dcc.Dropdown(
+        id='cncs_chopper_mode',
+        value='High Resolution',
+        options = [dict(label=str(_), value=_) for _ in chopper_modes],
     )
-    Ei_widget_elements = [
-        html.Label('Select incident energy (meV)'),
-        Ei_select,
-    ]
-    # 
     return html.Div(children=[
-        html.Div(Ei_widget_elements, style=dict(width="15em")),
         html.Div([
             dcc.Graph(
-                id='sequoia-flux_vs_fwhm',
+                id='cncs-flux_vs_fwhm',
             ),
         ], style=dict(width="50em")),
     ])
 
 
-# exp Flux vs FWHM
-extra_info = dict(
-    chopper_freqs = ('nu', '%sHz'),
-    RunNumber = ('Run no.', '%d'),
-    FWHM_percentages = ('Resolution percentage', '%.1f%%')
-)
-max_res_percentage = 55.
-plot_opts = dict(extra_info=extra_info, max_res_percentage=max_res_percentage)
+def sorted_xy_byx(x,y):
+    s = np.argsort(x)
+    return np.array(x)[s], np.array(y)[s]
 
-def getFlux_vs_FWHMdata(data, Ei, name, chopper_index):
-    plot_opts1 = dict(plot_opts)
-    plot_opts1.update(extra_condition = ((data.intensity>min_flux)&(data.vdata.chopper_choice==chopper_index)))
-    plot =  data.createPlotXY(Ei, 'FWHM', 'intensity', **plot_opts1)
-    plot.name = 'Experimental: '  + name
-    return plot
+def getFWHM_vs_Ei(chopper_mode):
+    x,y = sorted_xy_byx(expdata_highres.Ei_list, expdata_highres.FWHM)
+    ax[0].loglog(x,y, '+-', label='HighRes')
+    instrument.setChopper('High Resolution')
+    y_pychop = [instrument.getResFlux(Etrans=0, Ei_in=_, frequency=180.)[0][0] for _ in x]
+
 
 def build_callbacks(app):
+    return
     @app.callback(
-        [dd.Output(component_id='sequoia-flux_vs_fwhm', component_property='figure'),
+        [dd.Output(component_id='cncs-flux_vs_fwhm', component_property='figure'),
         ],
-        [dd.Input('sequoia_Ei_select', 'value'),
+        [dd.Input('cncs_chopper_mode', 'value'),
         ],
     )
-    def update_figure(Ei):
-        Ei = float(Ei)
-        
+    def update_figure(chopper):
         data = [
             getFlux_vs_FWHMdata(exp.alldata, Ei, 'High resolution', 0),
             getFlux_vs_FWHMdata(exp.alldata, Ei, 'High flux', 1),
