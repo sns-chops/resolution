@@ -80,6 +80,7 @@ def build_callbacks(app):
             'data': data,
             'layout': dict(
                 title = 'Flux vs resolution',
+                showlegend=True,
                 xaxis=dict(
                     title='FWHM (meV)',
                     showspikes=True,

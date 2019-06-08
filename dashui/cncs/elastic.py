@@ -67,6 +67,7 @@ def build_callbacks(app):
             'data': data,
             'layout': dict(
                 title = 'Resolution vs incident energy',
+                showlegend=True,
                 xaxis=dict(
                     title='Ei (meV)',
                     type='log',
