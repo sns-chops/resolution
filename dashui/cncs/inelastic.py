@@ -55,6 +55,12 @@ def build_interface(app):
             dcc.Markdown('', id='cncs-summary'),
         ]),
 
+        # formula
+        html.Details([
+            html.Summary("Polynomial fit for the energy dependence of resolution (FWHM)"),
+            html.Div(id='cncs-pychop-polyfit-formula'),
+        ]),
+
         # plot
         html.Div([
             dcc.Graph(
@@ -74,6 +80,7 @@ def build_callbacks(app):
          dd.Output(component_id='cncs-status', component_property='children'),
          dd.Output('cncs-download-link', 'href'),
          dd.Output('cncs-summary', 'children'),
+         dd.Output('cncs-pychop-polyfit-formula', 'children'),
         ],
         [dd.Input('cncs-calculate-button', 'n_clicks'),
          ],
@@ -87,15 +94,26 @@ def build_callbacks(app):
         try:
             E, res = get_data(chopper_select, Ei)
         except Exception as e:
-            raise
             status = str(e)
             curve = {}
             downloadlink = ''
             summary = ''
+            formula = ''
         else:
+            order = 3
+            a = np.polyfit(E, res, order)
+            yfit = sum( a[i]*E**(order-i) for i in range(order+1) )
+            # formula = r''.join( r'%.5g \times E ^ %d' % (a[i], order-i) for i in range(order+1) )
+            # formula = r'$$'+formula+r'$$'
+            def _(exponent):
+                if exponent>1: return 'E^%d'%exponent
+                if exponent==1: return 'E'
+                return ''
+            formula = ''.join( '%+.5g%s' % (a[i], _(order-i)) for i in range(order+1) )
             curve = {
                 'data': [
                     {'x': E, 'y': res, 'type': 'point', 'name': 'resolution'},
+                    {'x': E, 'y': yfit, 'type': 'lines', 'name': 'resolution polynomial fit'},
                 ],
                 'layout': {
                     'title': 'Energy dependence of resolution (PyChop)',
@@ -126,7 +144,7 @@ def build_callbacks(app):
                 #    flux = '%g (PyChop)' % flux
                 summary = summary_format_str.format(
                     el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei) #, flux=flux)
-        return curve, status, downloadlink, summary
+        return curve, status, downloadlink, summary, formula
 
     @app.server.route('/download/cncs')
     def cncs_download_csv():
