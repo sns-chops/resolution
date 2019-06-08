@@ -48,13 +48,6 @@ FC_widget_elements = [
 
 def build_interface(app):
     return html.Div(children=[
-        html.H1(children='ARCS inelastic resolution'),
-
-        dcc.Markdown('''
-This application calculates energy resolution (FWHM) as a function of energy transfer for the ARCS instrument
-using [PyChop](https://docs.mantidproject.org/nightly/interfaces/PyChop.html).
-The sample was assumed to be a plate of 2mm thickness and 48mm width and height.
-        '''),
 
         # input fields
         html.Table([
@@ -70,22 +63,17 @@ The sample was assumed to be a plate of 2mm thickness and 48mm width and height.
         html.Div(id='status', children='', style=dict(padding='1em', color='red')),
 
         # info
-        dcc.Markdown('', id='info'),
+        html.Details([
+            html.Summary('Summary'),
+            dcc.Markdown('', id='info'),
+        ]),
 
         # plot
-        dcc.Markdown('''
-### Plot
-The plot below is an interactive plot.ly plot.
-
-* You can drag a rectangle to zoom in
-* There are several icons near the top-right corner on each plot.ly plot as you hover your mouse on top of the plot, including an icon to zoom out
-* Hover the mouse over any data point to show more information related to the data point
-        '''),
         html.Div([
             dcc.Graph(
                 id='arcs-res_vs_E',
             ),
-        ], style=dict(width="40em")),
+        ], style=dict(width="40em", margin='.3em')),
 
         # download button
         html.A(html.Button('Download', id='download-button'), id='download-link'),
@@ -159,8 +147,6 @@ def build_callbacks(app):
     return
 
 info_format_str = '''
-### Basics
-
 * Incident energy: {Ei} meV
 * Elastic resolution: {el_res:.5f} meV
 * Elastic resolution percentage: {el_res_percentage:.2f}%

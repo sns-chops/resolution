@@ -46,10 +46,6 @@ def build_interface(app):
     ]
     # 
     return html.Div(children=[
-        html.H1(children='ARCS elastic resolution'),
-
-        dcc.Markdown(''''''),
-
         html.Div(Ei_widget_elements, style=dict(width="15em")),
         html.Div([
             dcc.Graph(
@@ -71,7 +67,7 @@ def getFlux_vs_FWHMdata(data, Ei, name):
     plot_opts1 = dict(plot_opts)
     plot_opts1.update(extra_condition = (data.intensity>min_flux))
     plot =  data.createPlotXY(Ei, 'FWHM', 'intensity', **plot_opts1)
-    plot.name = name
+    plot.name = 'Experimental: '  + name
     return plot
 
 def build_callbacks(app):
@@ -97,7 +93,7 @@ def build_callbacks(app):
                     showspikes=True,
                 ),
                 yaxis=dict(
-                    title='Flux (arb. unit)',
+                    title='Flux (counts/s/cm^2/MW)',
                     showspikes=True,
                 ),
             ),
