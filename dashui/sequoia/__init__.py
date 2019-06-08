@@ -39,11 +39,11 @@ The plots below are interactive plot.ly plots.
         ]),
         dcc.Tabs(children=[
             # dcc.Tab(label='Inelastic', children=[inel_div]),
-            # dcc.Tab(label='Elastic', children=[el_div]),
+            dcc.Tab(label='Elastic', children=[el_div]),
             ])
         ])
 
 def build_callbacks(app):
-    # elastic.build_callbacks(app)
+    elastic.build_callbacks(app)
     # inelastic.build_callbacks(app)
     return
