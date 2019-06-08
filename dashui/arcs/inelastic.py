@@ -110,7 +110,7 @@ def build_callbacks(app):
                     {'x': E, 'y': res, 'type': 'point', 'name': 'resolution'},
                 ],
                 'layout': {
-                    # 'title': '',
+                    'title': 'Energy dependence of resolution (PyChop)',
                     'xaxis':{
                         'title':'E (meV)'
                     },
@@ -148,7 +148,7 @@ def build_callbacks(app):
 
 info_format_str = '''
 * Incident energy: {Ei} meV
-* Elastic resolution: {el_res:.5f} meV
+* Elastic resolution: {el_res:.3f} meV
 * Elastic resolution percentage: {el_res_percentage:.2f}%
 '''
 
