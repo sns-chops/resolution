@@ -15,6 +15,7 @@ import dash.dependencies as dd
 import numpy as np
 from . import model as arcsmodel
 
+# data
 import resolution_plot
 fc1data = resolution_plot.ExpData(os.path.join(here, '../../ARCS//V_Cali_Int_Res_FC1_2018_v2.dat'))
 fc2data = resolution_plot.ExpData(os.path.join(here, '../../ARCS/V_Cali_Int_Res_FC2_2018_v2.dat'))
@@ -30,35 +31,35 @@ min_flux = 10000
 unique_nominal_Eis = set( list(fc1data.Ei_list) + list(fc2data.Ei_list) + list(fc1_highres_data.Ei_list) )
 unique_nominal_Eis = sorted(list(unique_nominal_Eis))
 
-Ei_select = dcc.Dropdown(
-    id='Ei_select',
-    value=100.,
-    options = [dict(label=str(_), value=_) for _ in unique_nominal_Eis],
-)
 
-Ei_widget_elements = [
-    html.Label('Incident energy (meV)'),
-    Ei_select,
-]
-
-
+# interface
 def build_interface(app):
+    # select Ei
+    Ei_select = dcc.Dropdown(
+        id='Ei_select',
+        value=100.,
+        options = [dict(label=str(_), value=_) for _ in unique_nominal_Eis],
+    )
+    Ei_widget_elements = [
+        html.Label('Select incident energy (meV)'),
+        Ei_select,
+    ]
+    # 
     return html.Div(children=[
-        html.H1(children='ARCS experimental elastic resolution'),
+        html.H1(children='ARCS elastic resolution'),
 
-        dcc.Markdown('''
-Experimental data
-        '''),
+        dcc.Markdown(''''''),
 
-        html.Div(Ei_widget_elements, style=dict(width="10em")),
+        html.Div(Ei_widget_elements, style=dict(width="15em")),
         html.Div([
             dcc.Graph(
                 id='arcs-flux_vs_fwhm',
             ),
-        ], style=dict(width="40em")),
+        ], style=dict(width="50em")),
     ])
 
 
+# exp Flux vs FWHM
 extra_info = dict(
         chopper_freqs = ('nu', '%sHz'),
         FWHM_percentages = ('Resolution percentage', '%.1f%%')

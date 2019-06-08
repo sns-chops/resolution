@@ -15,17 +15,17 @@ import dash.dependencies as dd
 import numpy as np
 from . import model as arcsmodel
 
-# import resolution_plot
-# fc1data = resolution_plot.ExpData(os.path.join(here, '../../ARCS//V_Cali_Int_Res_FC1_2018_v2.dat'))
-
+# chopper freqs
 chopper_freqs = range(120, 601, 120)
 chopper_freq_opts = [dict(label=str(f), value=f) for f in chopper_freqs]
 
+# select Ei
 Ei_widget_elements = [
     html.Label('Incident energy (meV)'),
     dcc.Input(id='Ei_input', type='number', value=100.),
 ]
 
+# select FC
 FC_widget_elements = [
     html.Label('Fermi chopper'),
     dcc.Dropdown(
@@ -90,8 +90,6 @@ The plot below is an interactive plot.ly plot.
         # download button
         html.A(html.Button('Download', id='download-button'), id='download-link'),
 
-        #
-        # dcc.Graph(figure={'data': [fc1data.createPlotXY(100., 'FWHM', 'intensity')]}),
     ])
 
 
