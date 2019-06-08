@@ -17,7 +17,7 @@ class ExpData:
         # read data
         print "reading data. please wait..."
         vdata = self.vdata = pd.read_csv(datafile, delimiter=' ')
-        vtable = ff.create_table(vdata)
+        # vtable = ff.create_table(vdata)
         print "  done"
         self.choppers = choppers = np.array(vdata.Chopper, dtype=int)
         self.chopper_freqs = np.array([getattr(vdata, "Chopper%d"%c)[i] for i, c in enumerate(choppers)])
