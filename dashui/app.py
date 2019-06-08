@@ -16,6 +16,11 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "DGS resolution"
 
+# no official support from dash for mathjax
+# the following only works for static html 
+# mathjax = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML'
+# app.scripts.append_script({ 'external_url' : mathjax })
+
 import arcs, sequoia, cncs, hyspec
 tab_style=dict(margin='0em 2em')
 instruments = 'arcs sequoia cncs hyspec'.split()
