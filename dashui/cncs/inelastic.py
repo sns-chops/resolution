@@ -83,7 +83,7 @@ def build_callbacks(app):
         ]
         )
     def update_output_div(n_clicks, chopper_select, Ei):
-        print(n_clicks, chopper_select, Ei)
+        # print(n_clicks, chopper_select, Ei)
         try:
             E, res = get_data(chopper_select, Ei)
         except Exception as e:

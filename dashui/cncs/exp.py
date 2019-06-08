@@ -23,8 +23,9 @@ class ExpData(resolution_plot.ExpData):
         self.FWHM_percentages = self.FWHM/vdata.Energy * 100.
         self.Ei_list = list(vdata.Energy.unique())
         return
-                                                                                                                   
-#expdata_highres = Vdata2018.ExpData(os.path.join(Vdata2018.datadir, './V_Cali_Int_Res_HighRes.dat'))
-#expdata_interm = Vdata2018.ExpData(os.path.join(Vdata2018.datadir, './V_Cali_Int_Res_Intermediate.dat'))
-#expdata_highflux = Vdata2018.ExpData(os.path.join(Vdata2018.datadir, './V_Cali_Int_Res_HighFlux.dat'))
+
+datadir = os.path.join(here, '../../CNCS/')
+#expdata_highres = ExpData(os.path.join(Vdata2018.datadir, './V_Cali_Int_Res_HighRes.dat'))
+#expdata_interm = ExpData(os.path.join(Vdata2018.datadir, './V_Cali_Int_Res_Intermediate.dat'))
+#expdata_highflux = ExpData(os.path.join(Vdata2018.datadir, './V_Cali_Int_Res_HighFlux.dat'))
 
