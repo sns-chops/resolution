@@ -62,10 +62,10 @@ def build_interface(app):
         # status
         html.Div(id='arcs-status', children='', style=dict(padding='1em', color='red')),
 
-        # info
+        # summary
         html.Details([
             html.Summary('Summary'),
-            dcc.Markdown('', id='arcs-info'),
+            dcc.Markdown('', id='arcs-summary'),
         ]),
 
         # plot
@@ -86,7 +86,7 @@ def build_callbacks(app):
         [dd.Output(component_id='arcs-res_vs_E', component_property='figure'),
          dd.Output(component_id='arcs-status', component_property='children'),
          dd.Output('arcs-download-link', 'href'),
-         dd.Output('arcs-info', 'children'),
+         dd.Output('arcs-summary', 'children'),
         ],
         [dd.Input('arcs-calculate-button', 'n_clicks'),
          ],
@@ -103,7 +103,7 @@ def build_callbacks(app):
             status = str(e)
             curve = {}
             downloadlink = ''
-            info = ''
+            summary = ''
         else:
             curve = {
                 'data': [
@@ -122,14 +122,14 @@ def build_callbacks(app):
             if (res!=res).any():
                 status = "No transmission"
                 downloadlink = ''
-                info = ''
+                summary = ''
             else:
                 status = ''
                 downloadlink = '/download?chopper_select=%s&chopper_freq=%s&Ei=%s' % (
                     chopper_select, chopper_freq, Ei)
                 elastic_res = arcsmodel.res_vs_E([0.], chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)[0]
-                info = info_format_str.format(el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei)
-        return curve, status, downloadlink, info
+                summary = summary_format_str.format(el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei)
+        return curve, status, downloadlink, summary
 
     @app.server.route('/download')
     def download_csv():
@@ -146,7 +146,7 @@ def build_callbacks(app):
 
     return
 
-info_format_str = '''
+summary_format_str = '''
 * Incident energy: {Ei} meV
 * Elastic resolution: {el_res:.3f} meV
 * Elastic resolution percentage: {el_res_percentage:.2f}%
