@@ -14,20 +14,24 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # external_stylesheets = ['https://codepen.io/chriddyp/pen/gzRdpr.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-app.title = "ARCS inelastic resolution"
+app.title = "DGS resolution"
 
-import arcs
-arcs_interface = arcs.build_interface(app)
+import arcs, sequoia, cncs, hyspec
 tab_style=dict(margin='0em 2em')
+instruments = 'arcs sequoia cncs hyspec'.split()
+tabs = []
+for instr in instruments:
+    interface = eval(instr).build_interface(app)
+    tab = dcc.Tab(label=instr.upper(), value=instr, children=html.Div([interface], style=tab_style))
+    tabs.append(tab)
+
 app.layout = html.Div([
-    dcc.Tabs([
-        dcc.Tab(label='ARCS', value='ARCS', children=html.Div([arcs_interface], style=tab_style)),
-        dcc.Tab(label='SEQUOIA', value='SEQUOIA'),
-        dcc.Tab(label='CNCS', value='CNCS'),
-        dcc.Tab(label='HYSPEC', value='HYSPEC'),
-    ], vertical=True)
+    dcc.Tabs(tabs, vertical=True)
 ])
-arcs.build_callbacks(app)
+
+for instr in instruments:
+    mod = eval(instr)
+    mod.build_callbacks(app)
 
 def main():
     import sys
