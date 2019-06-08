@@ -7,7 +7,7 @@
 import os, sys
 here = os.path.abspath(os.path.dirname(__file__))
 
-import dash, flask, io
+import dash, flask
 import dash_core_components as dcc
 import dash_html_components as html
 import dash.dependencies as dd
@@ -151,6 +151,7 @@ def build_callbacks(app):
             d[k] = value
         E, res = get_data(**d)
         filename = "arcs_res_{chopper_select}_{chopper_freq}_Ei_{Ei}.csv".format(**d)
+        from ..widget_utils import send_file
         return send_file(np.array([E,res]).T, filename)
 
     return
@@ -166,17 +167,4 @@ def get_data(chopper_select, chopper_freq, Ei):
     E = np.linspace(-Ei*.2, Ei*.95, 100)
     res = arcsmodel.res_vs_E(E, chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
     return E, res
-
-def send_file(nparr, filename):
-    str_io = io.StringIO()
-    np.savetxt(str_io, nparr, delimiter=',')
-    mem = io.BytesIO()
-    mem.write(str_io.getvalue().encode('utf-8'))
-    mem.seek(0)
-    str_io.close()
-    return flask.send_file(
-        mem,
-        mimetype='text/csv',
-        attachment_filename=filename,
-        as_attachment=True)
 
