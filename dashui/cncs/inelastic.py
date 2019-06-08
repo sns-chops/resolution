@@ -8,6 +8,7 @@ import dash.dependencies as dd
 
 import numpy as np
 from . import model as cncsmodel, exp
+from widget_utils import send_file
 
 # chopper freqs
 chopper_freqs = range(120, 601, 120)
@@ -157,7 +158,6 @@ def build_callbacks(app):
             d[k] = value
         E, res = get_data(**d)
         filename = "cncs_res_{chopper_select}_Ei_{Ei}.csv".format(**d)
-        from ..widget_utils import send_file
         return send_file(np.array([E,res]).T, filename)
 
     return
@@ -170,6 +170,6 @@ summary_format_str = '''
 # * Flux: {flux} counts/s/cm^2/MW
 
 def get_data(chopper_select, Ei):
-    E = np.linspace(-Ei*.2, Ei*.95, 100)
+    E = np.linspace(-Ei, Ei*.95, 100)
     res = cncsmodel.res_vs_E(E, chopper=chopper_select, Ei=Ei)
     return E, res

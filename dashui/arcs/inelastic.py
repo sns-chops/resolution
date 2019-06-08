@@ -14,6 +14,7 @@ import dash.dependencies as dd
 
 import numpy as np
 from . import model as arcsmodel, exp
+from widget_utils import send_file
 
 # chopper freqs
 chopper_freqs = range(120, 601, 120)
@@ -151,7 +152,6 @@ def build_callbacks(app):
             d[k] = value
         E, res = get_data(**d)
         filename = "arcs_res_{chopper_select}_{chopper_freq}_Ei_{Ei}.csv".format(**d)
-        from ..widget_utils import send_file
         return send_file(np.array([E,res]).T, filename)
 
     return
@@ -164,7 +164,7 @@ summary_format_str = '''
 '''
 
 def get_data(chopper_select, chopper_freq, Ei):
-    E = np.linspace(-Ei*.2, Ei*.95, 100)
+    E = np.linspace(-Ei, Ei*.95, 100)
     res = arcsmodel.res_vs_E(E, chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
     return E, res
 
