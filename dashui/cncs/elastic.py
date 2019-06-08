@@ -13,7 +13,7 @@ from . import model as cncsmodel, exp
 chopper_modes = [
     'High Resolution',
     'Intermediate',
-    'High Intensity',
+    'High Flux',
 ]
 
 # interface
@@ -26,6 +26,7 @@ def build_interface(app):
     )
     return html.Div(children=[
         html.Div([
+            chopper_mode, 
             dcc.Graph(
                 id='cncs-flux_vs_fwhm',
             ),
@@ -33,19 +34,27 @@ def build_interface(app):
     ])
 
 
+# plot
 def sorted_xy_byx(x,y):
     s = np.argsort(x)
     return np.array(x)[s], np.array(y)[s]
-
+extra_info = dict(
+    RunNumber = ('Run number', '%d'),
+    FWHM_percentages = ('Resolution percentage', '%.1f%%')
+)
 def getFWHM_vs_Ei(chopper_mode):
-    x,y = sorted_xy_byx(expdata_highres.Ei_list, expdata_highres.FWHM)
-    ax[0].loglog(x,y, '+-', label='HighRes')
-    instrument.setChopper('High Resolution')
-    y_pychop = [instrument.getResFlux(Etrans=0, Ei_in=_, frequency=180.)[0][0] for _ in x]
-
+    data = exp.data[chopper_mode]
+    expplot = data.createPlotXY_on_condition(None, 'Energy', 'FWHM', extra_info = extra_info)
+    expplot.name = 'Experimental'
+    # model
+    x,y = sorted_xy_byx(data.Ei_list, data.FWHM)
+    y_pychop = [cncsmodel.elastic_res_flux(chopper_mode, _)[0] for _ in x]
+    import plotly.graph_objs as go
+    modelplot = go.Scatter(x=x,y=y_pychop,mode='lines')
+    modelplot.name = 'PyChop'
+    return [expplot, modelplot]
 
 def build_callbacks(app):
-    return
     @app.callback(
         [dd.Output(component_id='cncs-flux_vs_fwhm', component_property='figure'),
         ],
@@ -53,20 +62,19 @@ def build_callbacks(app):
         ],
     )
     def update_figure(chopper):
-        data = [
-            getFlux_vs_FWHMdata(exp.alldata, Ei, 'High resolution', 0),
-            getFlux_vs_FWHMdata(exp.alldata, Ei, 'High flux', 1),
-        ]
+        data = getFWHM_vs_Ei(chopper)
         return {
             'data': data,
             'layout': dict(
-                title = 'Flux vs resolution',
+                title = 'Resolution vs incident energy',
                 xaxis=dict(
-                    title='FWHM (meV)',
+                    title='Ei (meV)',
+                    type='log',
                     showspikes=True,
                 ),
                 yaxis=dict(
-                    title='Flux (counts/s/cm^2/MW)',
+                    title='FWHM (meV)',
+                    type='log',
                     showspikes=True,
                 ),
             ),

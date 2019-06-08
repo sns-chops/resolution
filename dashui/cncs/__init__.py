@@ -11,7 +11,7 @@ from . import inelastic, elastic
 def build_interface(app):
     inel_div = inelastic.build_interface(app)
     el_div = elastic.build_interface(app)
-    inel_div.style = dict(border="1px solid lightgray", padding='1em')
+    el_div.style = inel_div.style = dict(border="1px solid lightgray", padding='1em')
     return html.Div([
         html.H1(children='CNCS resolution'),
         html.Details([
