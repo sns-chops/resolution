@@ -9,11 +9,13 @@ Experimental Elastic Resolution data plots
 * V_Cali_Int_Res_FC1_2018.dat: data file
 
 
-mcvine simulations
+Mcvine simulations
+
 * mcvine-Ei_*.ipynb: beam simulations. also calculates resolution and intensity
 
 
-for publication
+Plots for publication
+
 * resolution-plot-mpl.ipynb: Figure 1,2,3
 * PyChop/publish - Intensity vs VRes - Chopper2.ipynb: Figure 6
 * PyChop/publish - Intensity and VRes_vs_FCnu-Chopper2 - including mcvine sims.ipynb: Figure 4,5
