@@ -16,7 +16,15 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "ARCS inelastic resolution"
 
 import arcs
-app.layout = arcs.build_interface(app)
+arcs_interface = arcs.build_interface(app)
+app.layout = html.Div([
+    dcc.Tabs([
+        dcc.Tab(label='ARCS', value='ARCS', children=html.Div([arcs_interface], style=dict(margin='1em 2em'))),
+        dcc.Tab(label='SEQUOIA', value='SEQUOIA'),
+        dcc.Tab(label='CNCS', value='CNCS'),
+        dcc.Tab(label='HYSPEC', value='HYSPEC'),
+    ], vertical=True)
+])
 arcs.build_callbacks(app)
 
 def main():
