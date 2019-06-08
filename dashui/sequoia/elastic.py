@@ -19,7 +19,7 @@ def build_interface(app):
     # select Ei
     Ei_select = dcc.Dropdown(
         id='sequoia_Ei_select',
-        value=100.,
+        value=95.,
         options = [dict(label=str(_), value=_) for _ in good_Eis],
     )
     Ei_widget_elements = [
