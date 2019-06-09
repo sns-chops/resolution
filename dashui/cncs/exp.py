@@ -9,9 +9,9 @@ import resolution_plot
 class ExpData(resolution_plot.ExpData):
     def __init__(self, datafile):
         # read data
-        print "reading data. please wait..."
+        print("reading data. please wait...")
         vdata = self.vdata = pd.read_csv(datafile, delimiter=' ')
-        print "  done"
+        print("  done")
         self.intensity = vdata.Height * vdata.Sigma * np.sqrt(2.*np.pi)
         self.resolution = resolution = vdata.Sigma
         self.FWHM = resolution * 2.355
