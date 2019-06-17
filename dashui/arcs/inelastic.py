@@ -17,7 +17,7 @@ from . import model as arcsmodel, exp
 from widget_utils import send_file
 
 # chopper freqs
-chopper_freqs = range(120, 601, 120)
+chopper_freqs = range(60, 601, 60)
 chopper_freq_opts = [dict(label=str(f), value=f) for f in chopper_freqs]
 
 # select Ei
