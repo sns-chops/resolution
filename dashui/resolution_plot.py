@@ -44,7 +44,7 @@ class ExpData:
             condition = np.ones(xdata.shape, dtype='bool')
         # print x,y
         labels = [''] * int(condition.sum())
-        for attr_name, (attr_label, format_str) in extra_info.iteritems():
+        for attr_name, (attr_label, format_str) in extra_info.items():
             fmt = '%s='+format_str
             for i,v in enumerate(self.getDataArr(attr_name)[condition]):
                 labels[i] += fmt % (attr_label, v) + '\n'
