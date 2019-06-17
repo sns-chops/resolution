@@ -22,7 +22,7 @@ def build_interface(app):
     chopper_mode = dcc.Dropdown(
         id='cncs_chopper_mode',
         value='High Resolution',
-        options = [dict(label=str(_), value=_) for _ in chopper_modes],
+        options = [dict(label=str(_), value=_) for _ in chopper_modes+['all']],
     )
     return html.Div(children=[
         html.Div([
@@ -62,7 +62,10 @@ def build_callbacks(app):
         ],
     )
     def update_figure(chopper):
-        data = getFWHM_vs_Ei(chopper)
+        if chopper == 'all':
+            data = sum([getFWHM_vs_Ei(chopper) for chopper in chopper_modes], [])
+        else:
+            data = getFWHM_vs_Ei(chopper)
         return {
             'data': data,
             'layout': dict(
