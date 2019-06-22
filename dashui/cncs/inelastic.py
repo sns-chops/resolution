@@ -8,7 +8,7 @@ import dash.dependencies as dd
 
 import numpy as np
 from . import model as cncsmodel, exp
-from widget_utils import send_file
+import widget_utils as wu
 
 # chopper freqs
 chopper_freqs = range(120, 601, 120)
@@ -105,16 +105,7 @@ def build_callbacks(app):
             matlab_formula = ''
         else:
             order = 3
-            a = np.polyfit(E, res, order)
-            yfit = sum( a[i]*E**(order-i) for i in range(order+1) )
-            # formula = r''.join( r'%.5g \times E ^ %d' % (a[i], order-i) for i in range(order+1) )
-            # formula = r'$$'+formula+r'$$'
-            def _(exponent, power_operator):
-                if exponent>1: return '* x%s%d'%(power_operator, exponent)
-                if exponent==1: return '* x'
-                return ''
-            python_formula = 'Python: ' + ' '.join( '%+.5g %s' % (a[i], _(order-i, '**')) for i in range(order+1) )
-            matlab_formula = 'Matlab: ' + ' '.join( '%+.5g %s' % (a[i], _(order-i, '^')) for i in range(order+1) )
+            yfit, python_formula, matlab_formula = wu.polyfit(E, res, order)
             curve = {
                 'data': [
                     {'x': E, 'y': res, 'type': 'point', 'name': 'resolution'},
@@ -162,7 +153,7 @@ def build_callbacks(app):
             d[k] = value
         E, res = get_data(**d)
         filename = "cncs_res_{chopper_select}_Ei_{Ei}.csv".format(**d)
-        return send_file(np.array([E,res]).T, filename)
+        return wu.send_file(np.array([E,res]).T, filename)
 
     return
 

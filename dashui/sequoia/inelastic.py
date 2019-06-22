@@ -1,9 +1,3 @@
-# to run, add parent directory of PyChop to PYTHONPATH
-# then $ python {thisfile}
-#
-# Main app: http://localhost:8050/
-# Download: http://localhost:8050/download?chopper_select=ARCS-100-1.5-AST&chopper_freq=600&Ei=100
-
 import os, sys
 here = os.path.abspath(os.path.dirname(__file__))
 
