@@ -58,8 +58,9 @@ def build_interface(app):
 
         # formula
         html.Details([
-            html.Summary("Polynomial fit for the energy dependence of resolution (FWHM)"),
-            html.Div(id='cncs-pychop-polyfit-formula'),
+            html.Summary("Polynomial fit for the energy-transfer (x) dependence of resolution (FWHM)"),
+            html.Div(id='cncs-pychop-polyfit-python-formula'),
+            html.Div(id='cncs-pychop-polyfit-matlab-formula'),
         ]),
 
         # plot
@@ -81,7 +82,8 @@ def build_callbacks(app):
          dd.Output(component_id='cncs-status', component_property='children'),
          dd.Output('cncs-download-link', 'href'),
          dd.Output('cncs-summary', 'children'),
-         dd.Output('cncs-pychop-polyfit-formula', 'children'),
+         dd.Output('cncs-pychop-polyfit-python-formula', 'children'),
+         dd.Output('cncs-pychop-polyfit-matlab-formula', 'children'),
         ],
         [dd.Input('cncs-calculate-button', 'n_clicks'),
          ],
@@ -99,18 +101,20 @@ def build_callbacks(app):
             curve = {}
             downloadlink = ''
             summary = ''
-            formula = ''
+            python_formula = ''
+            matlab_formula = ''
         else:
             order = 3
             a = np.polyfit(E, res, order)
             yfit = sum( a[i]*E**(order-i) for i in range(order+1) )
             # formula = r''.join( r'%.5g \times E ^ %d' % (a[i], order-i) for i in range(order+1) )
             # formula = r'$$'+formula+r'$$'
-            def _(exponent):
-                if exponent>1: return 'E^%d'%exponent
-                if exponent==1: return 'E'
+            def _(exponent, power_operator):
+                if exponent>1: return '* x%s%d'%(power_operator, exponent)
+                if exponent==1: return '* x'
                 return ''
-            formula = ''.join( '%+.5g%s' % (a[i], _(order-i)) for i in range(order+1) )
+            python_formula = 'Python: ' + ' '.join( '%+.5g %s' % (a[i], _(order-i, '**')) for i in range(order+1) )
+            matlab_formula = 'Matlab: ' + ' '.join( '%+.5g %s' % (a[i], _(order-i, '^')) for i in range(order+1) )
             curve = {
                 'data': [
                     {'x': E, 'y': res, 'type': 'point', 'name': 'resolution'},
@@ -145,7 +149,7 @@ def build_callbacks(app):
                 #    flux = '%g (PyChop)' % flux
                 summary = summary_format_str.format(
                     el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei) #, flux=flux)
-        return curve, status, downloadlink, summary, formula
+        return curve, status, downloadlink, summary, python_formula, matlab_formula
 
     @app.server.route('/download/cncs')
     def cncs_download_csv():
