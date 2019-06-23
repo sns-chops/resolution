@@ -1,49 +1,39 @@
-# to run, add parent directory of PyChop to PYTHONPATH
-# then $ python {thisfile}
-#
-# Main app: http://localhost:8050/
-# Download: http://localhost:8050/download?chopper_select=ARCS-100-1.5-AST&chopper_freq=600&Ei=100
-
 import os, sys
 here = os.path.abspath(os.path.dirname(__file__))
 
-import dash, flask, io
+import dash, flask
 import dash_core_components as dcc
 import dash_html_components as html
 import dash.dependencies as dd
 
 import numpy as np
-from . import model as arcsmodel, exp
+from . import model as sequoiamodel, exp
+import widget_utils as wu
 
 # chopper freqs
-chopper_freqs = range(120, 601, 120)
+chopper_freqs = range(60, 601, 60)
 chopper_freq_opts = [dict(label=str(f), value=f) for f in chopper_freqs]
 
 # select Ei
 Ei_widget_elements = [
     html.Label('Incident energy (meV)'),
-    dcc.Input(id='arcs_Ei_input', type='number', value=100.),
+    dcc.Input(id='sequoia_Ei_input', type='number', value=80.),
 ]
 
 # select FC
 FC_widget_elements = [
-    html.Label('Fermi chopper'),
+    html.Label('Fermi Chopper'),
     dcc.Dropdown(
-        id='arcs_chopper_select',
+        id='sequoia_chopper_select',
         options = [
-            dict(label='ARCS-100-1.5-AST', value='ARCS-100-1.5-AST'),
-            dict(label='ARCS-700-1.5-AST', value='ARCS-700-1.5-AST'),
-            dict(label='ARCS-700-0.5-AST', value='ARCS-700-0.5-AST'),
-            # dict(label='ARCS-100-1.5-SMI', value='ARCS-100-1.5-SMI'),
-            # dict(label='ARCS-700-1.5-SMI', value='ARCS-700-1.5-SMI'),
-            #dict(label='SEQ-100-2.0-AST', value='SEQ-100-2.0-AST'),
-            #dict(label='SEQ-700-3.5-AST', value='SEQ-700-3.5-AST'),
+            dict(label='High Resolutionn', value='High-Resolution'),
+            dict(label='High Flux', value='High-Flux'),
         ],
-        value = 'ARCS-100-1.5-AST',
+        value = 'High-Resolution',
     ),
-
+    #
     html.Label('Fermi chopper frequency'),
-    dcc.Dropdown(id='arcs_chopper_freq', value=600, options=chopper_freq_opts),
+    dcc.Dropdown(id='sequoia_chopper_freq', value=600, options=chopper_freq_opts),
 ]
 
 def build_interface(app):
@@ -58,45 +48,55 @@ def build_interface(app):
         ]),
 
         # calculate button
-        html.Div([html.Button('Calculate', id='arcs-calculate-button')], style=dict(padding='1em')),
+        html.Div([html.Button('Calculate', id='sequoia-calculate-button')], style=dict(padding='1em')),
         # status
-        html.Div(id='arcs-status', children='', style=dict(padding='1em', color='red')),
+        html.Div(id='sequoia-status', children='', style=dict(padding='1em', color='red')),
 
         # summary
         html.Details([
             html.Summary('Summary'),
-            dcc.Markdown('', id='arcs-summary'),
+            dcc.Markdown('', id='sequoia-summary'),
+        ]),
+
+        # formula
+        html.Details([
+            html.Summary("Polynomial fit for the energy-transfer (x) dependence of resolution (FWHM)"),
+            html.Div(id='sequoia-pychop-polyfit-python-formula'),
+            html.Div(id='sequoia-pychop-polyfit-matlab-formula'),
         ]),
 
         # plot
         html.Div([
             dcc.Graph(
-                id='arcs-res_vs_E',
+                id='sequoia-res_vs_E',
             ),
         ], style=dict(width="40em", margin='.3em')),
 
         # download button
-        html.A(html.Button('Download', id='download-button'), id='arcs-download-link'),
+        html.A(html.Button('Download'), id='sequoia-download-link'),
 
     ])
 
 
 def build_callbacks(app):
     @app.callback(
-        [dd.Output(component_id='arcs-res_vs_E', component_property='figure'),
-         dd.Output(component_id='arcs-status', component_property='children'),
-         dd.Output('arcs-download-link', 'href'),
-         dd.Output('arcs-summary', 'children'),
+        [dd.Output(component_id='sequoia-res_vs_E', component_property='figure'),
+         dd.Output(component_id='sequoia-status', component_property='children'),
+         dd.Output('sequoia-download-link', 'href'),
+         dd.Output('sequoia-summary', 'children'),
+         dd.Output('sequoia-pychop-polyfit-python-formula', 'children'),
+         dd.Output('sequoia-pychop-polyfit-matlab-formula', 'children'),
         ],
-        [dd.Input('arcs-calculate-button', 'n_clicks'),
+        [dd.Input('sequoia-calculate-button', 'n_clicks'),
          ],
         [
-         dd.State(component_id='arcs_chopper_select', component_property='value'),
-         dd.State(component_id='arcs_chopper_freq', component_property='value'),
-         dd.State(component_id='arcs_Ei_input', component_property='value'),
+         dd.State(component_id='sequoia_chopper_select', component_property='value'),
+         dd.State(component_id='sequoia_chopper_freq', component_property='value'),
+         dd.State(component_id='sequoia_Ei_input', component_property='value'),
         ]
         )
     def update_output_div(n_clicks, chopper_select, chopper_freq, Ei):
+        # print(n_clicks, chopper_select, Ei)
         try:
             E, res = get_data(chopper_select, chopper_freq, Ei)
         except Exception as e:
@@ -104,10 +104,15 @@ def build_callbacks(app):
             curve = {}
             downloadlink = ''
             summary = ''
+            python_formula = ''
+            matlab_formula = ''
         else:
+            order = 3
+            yfit, python_formula, matlab_formula = wu.polyfit(E, res, order)
             curve = {
                 'data': [
                     {'x': E, 'y': res, 'type': 'point', 'name': 'resolution'},
+                    {'x': E, 'y': yfit, 'type': 'lines', 'name': 'resolution polynomial fit'},
                 ],
                 'layout': {
                     'title': 'Energy dependence of resolution (PyChop)',
@@ -125,33 +130,34 @@ def build_callbacks(app):
                 summary = ''
             else:
                 status = ''
-                downloadlink = '/download?chopper_select=%s&chopper_freq=%s&Ei=%s' % (
-                    chopper_select, chopper_freq, Ei)
-                elastic_res,flux = arcsmodel.elastic_res_flux(chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
-                data = exp.data[chopper_select]
-                indexes = (np.where(np.isclose(data.vdata.Energy, Ei) * np.isclose(data.chopper_freqs, chopper_freq)))[0]
-                if len(indexes):
-                    index = indexes[0]
-                    # print(data.FWHM[index])
-                    flux = '%g (PyChop); %g (Experiment)' % (flux, data.intensity[index])
-                else:
-                    flux = '%g (PyChop)' % flux
+                downloadlink = '/download/sequoia?chopper_select=%s&Ei=%s' % (
+                    chopper_select, Ei)
+                elastic_res,flux = sequoiamodel.elastic_res_flux(
+                    chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
+                # data = exp.data[chopper_select]
+                # indexes = (np.where(np.isclose(data.vdata.Energy, Ei)))[0]
+                #if len(indexes):
+                #    index = indexes[0]
+                #    # print(data.FWHM[index])
+                #    flux = '%g (PyChop); %g (Experiment)' % (flux, data.intensity[index])
+                #else:
+                #    flux = '%g (PyChop)' % flux
                 summary = summary_format_str.format(
-                    el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei, flux=flux)
-        return curve, status, downloadlink, summary
+                    el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei) #, flux=flux)
+        return curve, status, downloadlink, summary, python_formula, matlab_formula
 
-    @app.server.route('/download')
-    def download_csv():
+    @app.server.route('/download/sequoia')
+    def sequoia_download_csv():
         d = {}
-        keys = ['chopper_select', 'chopper_freq', 'Ei']
+        keys = ['chopper_select', 'Ei']
         for k in keys:
             value = flask.request.args.get(k)
             try: value = float(value)
             except: pass
             d[k] = value
         E, res = get_data(**d)
-        filename = "arcs_res_{chopper_select}_{chopper_freq}_Ei_{Ei}.csv".format(**d)
-        return send_file(np.array([E,res]).T, filename)
+        filename = "sequoia_res_{chopper_select}_Ei_{Ei}.csv".format(**d)
+        return wu.send_file(np.array([E,res]).T, filename)
 
     return
 
@@ -159,24 +165,10 @@ summary_format_str = '''
 * Incident energy: {Ei} meV
 * Elastic resolution: {el_res:.3f} meV
 * Elastic resolution percentage: {el_res_percentage:.2f}%
-* Flux: {flux} counts/s/cm^2/MW
 '''
+# * Flux: {flux} counts/s/cm^2/MW
 
 def get_data(chopper_select, chopper_freq, Ei):
-    E = np.linspace(-Ei*.2, Ei*.95, 100)
-    res = arcsmodel.res_vs_E(E, chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
+    E = np.linspace(-Ei, Ei*.95, 100)
+    res = sequoiamodel.res_vs_E(E, chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
     return E, res
-
-def send_file(nparr, filename):
-    str_io = io.StringIO()
-    np.savetxt(str_io, nparr, delimiter=',')
-    mem = io.BytesIO()
-    mem.write(str_io.getvalue().encode('utf-8'))
-    mem.seek(0)
-    str_io.close()
-    return flask.send_file(
-        mem,
-        mimetype='text/csv',
-        attachment_filename=filename,
-        as_attachment=True)
-
