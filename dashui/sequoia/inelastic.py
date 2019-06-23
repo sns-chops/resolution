@@ -7,7 +7,7 @@ import dash_html_components as html
 import dash.dependencies as dd
 
 import numpy as np
-from . import model as cncsmodel, exp
+from . import model as sequoiamodel, exp
 import widget_utils as wu
 
 # chopper freqs
@@ -26,14 +26,14 @@ FC_widget_elements = [
     dcc.Dropdown(
         id='sequoia_chopper_select',
         options = [
-            dict(label='High Resolutionn', value='High Resolution'),
-            dict(label='High Flux', value='High Flux'),
+            dict(label='High Resolutionn', value='High-Resolution'),
+            dict(label='High Flux', value='High-Flux'),
         ],
-        value = 'High Resolution',
+        value = 'High-Resolution',
     ),
     #
     html.Label('Fermi chopper frequency'),
-    dcc.Dropdown(id='seq_chopper_freq', value=600, options=chopper_freq_opts),
+    dcc.Dropdown(id='sequoia_chopper_freq', value=600, options=chopper_freq_opts),
 ]
 
 def build_interface(app):
@@ -98,7 +98,7 @@ def build_callbacks(app):
     def update_output_div(n_clicks, chopper_select, chopper_freq, Ei):
         # print(n_clicks, chopper_select, Ei)
         try:
-            E, res = get_data(chopper_select, Ei)
+            E, res = get_data(chopper_select, chopper_freq, Ei)
         except Exception as e:
             status = str(e)
             curve = {}
