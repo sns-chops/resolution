@@ -132,7 +132,8 @@ def build_callbacks(app):
                 status = ''
                 downloadlink = '/download/sequoia?chopper_select=%s&Ei=%s' % (
                     chopper_select, Ei)
-                elastic_res,flux = sequoiamodel.elastic_res_flux(chopper=chopper_select, Ei=Ei)
+                elastic_res,flux = sequoiamodel.elastic_res_flux(
+                    chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
                 # data = exp.data[chopper_select]
                 # indexes = (np.where(np.isclose(data.vdata.Energy, Ei)))[0]
                 #if len(indexes):
