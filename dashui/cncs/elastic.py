@@ -112,7 +112,7 @@ def build_callbacks(app):
                         showspikes=True,
                     ),
                     yaxis=dict(
-                        title='Flux (arb. unit)',
+                        title='Flux (counts/s/cm^2/MW)',
                         type='log',
                         showspikes=True,
                     ),

@@ -139,7 +139,7 @@ def build_callbacks(app):
                 #else:
                 #    flux = '%g (PyChop)' % flux
                 summary = summary_format_str.format(
-                    el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei) #, flux=flux)
+                    el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei, flux=flux)
         return curve, status, downloadlink, summary, python_formula, matlab_formula
 
     @app.server.route('/download/cncs')
@@ -161,6 +161,7 @@ summary_format_str = '''
 * Incident energy: {Ei} meV
 * Elastic resolution: {el_res:.3f} meV
 * Elastic resolution percentage: {el_res_percentage:.2f}%
+* Flux: {flux:.3g} (counts/s/cm^2/MW)
 '''
 # * Flux: {flux} counts/s/cm^2/MW
 
