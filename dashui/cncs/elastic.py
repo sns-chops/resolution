@@ -58,7 +58,7 @@ def getFWHM_vs_Ei(chopper_mode):
     return [expplot, modelplot]
 def getFlux_vs_Ei(chopper_mode):
     data = exp.data[chopper_mode]
-    expplot = data.createPlotXY_on_condition(None, 'Energy', 'intensity', extra_info = extra_info)
+    expplot = data.createPlotXY_on_condition(None, 'Energy', 'flux', extra_info = extra_info)
     expplot.name = 'Experimental'
     # model
     x,y = sorted_xy_byx(data.Ei_list, data.intensity)
