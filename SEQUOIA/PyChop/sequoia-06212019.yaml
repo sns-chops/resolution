@@ -15,24 +15,27 @@ chopper_system:
       distance: 18.01           # Distance from moderator to this chopper in metres
       aperture_distance: 17.0   # Distance from aperture (moderator face) to this chopper (only for Fermi)
       packages:                 # A hash of chopper packages
-        Fine:
+        High-Resolution:
           name: SEQUOIA Fine resolution 100meV
-          pslit: 1.087          # Neutron transparent slit width (mm)
-          pslat: 0.534          # Neutron absorbing slat width (mm)
-          radius: 49.0          # Chopper package radius (mm)
-          rho: 1300.0           # Chopper package curvature (mm)
+          pslit: 2.03           # Neutron transparent slit width (mm)
+          pslat: 0.35           # Neutron absorbing slat width (mm)
+          radius: 50.0          # Chopper package radius (mm)
+          rho: 580.0            # Chopper package curvature (mm)
           tjit: 0.0             # Jitter time (us)
           fluxcorr: 3.0         # (Empirical/Fudge) factor to scale calculated flux by
           isPi: False           # Should the PI pulse (at 180 deg rotation) be transmitted by this package?
-        Sloppy:
+
+        High-Flux:
           name: SEQUOIA Sloppy resolution 700meV
-          pslit: 2.512          # Neutron transparent slit width (mm)
-          pslat: 0.534          # Neutron absorbing slat width (mm)
-          radius: 49.0          # Chopper package radius (mm)
-          rho: 920.0            # Chopper package curvature (mm)
+          name: SEQUOIA 700 meV Sloppy
+          pslit: 4.56           # Neutron transparent slit width (mm)
+          pslat: 0.35           # Neutron absorbing slat width (mm)
+          radius: 50.0          # Chopper package radius (mm)
+          rho: 1535.0           # Chopper package curvature (mm)
           tjit: 0.0             # Jitter time (us)
           fluxcorr: 3.0         # (Empirical/Fudge) factor to scale calculated flux by
           isPi: False           # Should the PI pulse (at 180 deg rotation) be transmitted by this package?
+
         SEQ-100-2.0-AST:
           name: SEQUOIA 100 meV Sloppy
           pslit: 2.03           # Neutron transparent slit width (mm)
