@@ -14,7 +14,7 @@ from PyChop import PyChop2
 
 yamlpath = os.path.join(here, '../../CNCS/PyChop/cncs-06082019.yaml')
 
-scale_flux = 7e-6
+scale_flux = 3e2 * 0.00980989028558523 # https://jupyter.sns.gov/user/lj7/notebooks/dv/sns-chops/resolution/CNCS/PyChop/pychop%20-%20Intensity%20and%20VRes_vs_Ei.ipynb
 
 freqs = {
     'High Resolution': 180.,
