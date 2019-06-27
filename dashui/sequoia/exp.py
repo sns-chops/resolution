@@ -26,6 +26,7 @@ class ExpData(resolution_plot.ExpData):
                                                                                                                    
 alldata = ExpData(os.path.join(here, '../../SEQUOIA/V_Cali_Int_Res_All-IPTS_22666.dat'))
 
+# scale factor from https://jupyter.sns.gov/user/lj7/notebooks/dv/sns-chops/resolution/SEQUOIA/plotly-plot-2.ipynb
 alldata.intensity *= 580000
 
 # unique Eis

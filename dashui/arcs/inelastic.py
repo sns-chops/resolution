@@ -134,9 +134,9 @@ def build_callbacks(app):
                 if len(indexes):
                     index = indexes[0]
                     # print(data.FWHM[index])
-                    flux = '%g (PyChop); %g (Experiment)' % (flux, data.intensity[index])
+                    flux = '%.3g (PyChop); %.3g (Experiment)' % (flux, data.intensity[index])
                 else:
-                    flux = '%g (PyChop)' % flux
+                    flux = '%.3g (PyChop)' % flux
                 summary = summary_format_str.format(
                     el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei, flux=flux)
         return curve, status, downloadlink, summary

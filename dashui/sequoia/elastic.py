@@ -62,7 +62,6 @@ def build_callbacks(app):
     )
     def update_figure(Ei):
         Ei = float(Ei)
-        
         data = [
             getFlux_vs_FWHMdata(exp.alldata, Ei, 'High resolution', 0),
             getFlux_vs_FWHMdata(exp.alldata, Ei, 'High flux', 1),
