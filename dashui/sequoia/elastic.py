@@ -30,9 +30,9 @@ def build_interface(app):
     return html.Div(children=[
         html.Div(Ei_widget_elements, style=dict(width="15em")),
         html.Div([
-            dcc.Graph(
-                id='sequoia-flux_vs_fwhm',
-            ),
+            dcc.Graph(id='sequoia-flux_vs_fwhm'),
+            dcc.Graph(id='sequoia-fwhm_vs_freq'),
+            dcc.Graph(id='sequoia-flux_vs_freq'),
         ], style=dict(width="50em")),
     ])
 
@@ -53,9 +53,26 @@ def getFlux_vs_FWHMdata(data, Ei, name, chopper_index):
     plot.name = 'Experimental: '  + name
     return plot
 
+def getFlux_vs_freq_data(data, Ei, name, chopper_index):
+    plot_opts1 = dict(plot_opts)
+    plot_opts1.update(extra_condition = ((data.intensity>min_flux)&(data.vdata.chopper_choice==chopper_index)))
+    plot =  data.createPlotXY(Ei, 'chopper_freqs', 'intensity', **plot_opts1)
+    plot.name = 'Experimental: '  + name
+    return plot
+
+def getFWHM_vs_freq_data(data, Ei, name, chopper_index):
+    plot_opts1 = dict(plot_opts)
+    plot_opts1.update(extra_condition = ((data.intensity>min_flux)&(data.vdata.chopper_choice==chopper_index)))
+    plot =  data.createPlotXY(Ei, 'chopper_freqs', 'FWHM', **plot_opts1)
+    plot.name = 'Experimental: '  + name
+    return plot
+
 def build_callbacks(app):
     @app.callback(
-        [dd.Output(component_id='sequoia-flux_vs_fwhm', component_property='figure'),
+        [
+            dd.Output(component_id='sequoia-flux_vs_fwhm', component_property='figure'),
+            dd.Output(component_id='sequoia-fwhm_vs_freq', component_property='figure'),
+            dd.Output(component_id='sequoia-flux_vs_freq', component_property='figure'),
         ],
         [dd.Input('sequoia_Ei_select', 'value'),
         ],
@@ -66,19 +83,59 @@ def build_callbacks(app):
             getFlux_vs_FWHMdata(exp.alldata, Ei, 'High resolution', 0),
             getFlux_vs_FWHMdata(exp.alldata, Ei, 'High flux', 1),
         ]
-        return {
-            'data': data,
-            'layout': dict(
-                title = 'Flux vs resolution',
-                showlegend=True,
-                xaxis=dict(
-                    title='FWHM (meV)',
-                    showspikes=True,
+        data2 = [
+            getFWHM_vs_freq_data(exp.alldata, Ei, 'High resolution', 0),
+            getFWHM_vs_freq_data(exp.alldata, Ei, 'High flux', 1),
+        ]
+        data3 = [
+            getFlux_vs_freq_data(exp.alldata, Ei, 'High resolution', 0),
+            getFlux_vs_freq_data(exp.alldata, Ei, 'High flux', 1),
+        ]
+        return [
+            {
+                'data': data,
+                'layout': dict(
+                    title = 'Flux vs resolution',
+                    showlegend=True,
+                    xaxis=dict(
+                        title='FWHM (meV)',
+                        showspikes=True,
+                    ),
+                    yaxis=dict(
+                        title='Flux (counts/s/cm^2/MW)',
+                        showspikes=True,
+                    ),
                 ),
-                yaxis=dict(
-                    title='Flux (counts/s/cm^2/MW)',
-                    showspikes=True,
+            },
+            {
+                'data': data2,
+                'layout': dict(
+                    title = 'FWHM vs Chopper Frequency',
+                    showlegend=True,
+                    xaxis=dict(
+                        title='Chopper frequency (Hz)',
+                        showspikes=True,
+                    ),
+                    yaxis=dict(
+                        title='FWHM (meV)',
+                        showspikes=True,
+                    ),
                 ),
-            ),
-        },
+            },
+            {
+                'data': data3,
+                'layout': dict(
+                    title = 'Flux vs Chopper Frequency',
+                    showlegend=True,
+                    xaxis=dict(
+                        title='Chopper frequency (Hz)',
+                        showspikes=True,
+                    ),
+                    yaxis=dict(
+                        title='Flux (counts/s/cm^2/MW)',
+                        showspikes=True,
+                    ),
+                ),
+            },
+        ]
     return
