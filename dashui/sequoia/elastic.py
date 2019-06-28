@@ -77,7 +77,7 @@ def getFWHM_vs_freq_data(data, Ei, name, chopper_index):
     # model
     x = chopper_freqs
     chopper_mode = choppers[chopper_index]
-    y_pychop = [sequoiamodel.elastic_res_flux(chopper_mode, chopper_freq=_, Ei=Ei)[0] for _ in x]
+    y_pychop = [sequoiamodel.elastic_resolution(chopper_mode, chopper_freq=_, Ei=Ei) for _ in x]
     import plotly.graph_objs as go
     modelplot = go.Scatter(x=x,y=y_pychop,mode='lines')
     modelplot.name = 'PyChop: ' + name
