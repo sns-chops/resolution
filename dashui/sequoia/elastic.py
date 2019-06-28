@@ -13,7 +13,7 @@ from . import model as sequoiamodel, exp
 min_flux = 10
 
 good_Eis = exp.good_Eis
-chopper_freqs = range(60, 601, 60)
+chopper_freqs = np.arange(60, 601, 60)
 choppers = ['High-Resolution', 'High-Flux']
 
 # interface

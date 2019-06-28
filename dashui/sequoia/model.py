@@ -23,7 +23,7 @@ def elastic_res_flux(chopper='SEQUOIA-100-1.5-SMI', chopper_freq=600., Ei=100.):
 #https://jupyter.sns.gov/user/lj7/notebooks/dv/sns-chops/resolution/SEQUOIA/PyChop/pychop%20-%20Intensity%20and%20VRes_vs_Ei.ipynb
 #
 v =  8.314*(300.)/(10*101325)/6.022e23 * 1e30  # AA^3
-print 1/v
+# print 1/v
 xs = 5333. # barn
 v/xs  # cm
 mu_He3 = xs/v
