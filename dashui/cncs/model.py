@@ -23,16 +23,25 @@ freqs = {
 }
 
 def res_vs_E(E, chopper, Ei=100.):
-    instrument = PyChop2(yamlpath)
-    instrument.setChopper(chopper)
+    instrument = _getModel(yamlpath, chopper)
     res, flux = instrument.getResFlux(Etrans=E, Ei_in=Ei, frequency=freqs[chopper])
     return res
 
 def elastic_res_flux(chopper, Ei=100.):
-    instrument = PyChop2(yamlpath)
-    instrument.setChopper(chopper)
+    instrument = _getModel(yamlpath, chopper)
     res, flux = instrument.getResFlux(Etrans=0., Ei_in=Ei, frequency=freqs[chopper])
     return res[0], flux[0]*scale_flux*deteff(Ei)*absorption(Ei)
+
+model_cache = {}
+def _getModel(path, chopper):
+    key = path, chopper
+    if key not in model_cache:
+        model = PyChop2(path)
+        model.setChopper(chopper)
+        model_cache[key] = model
+    else:
+        model = model_cache[key]
+    return model
 
 def main():
     E = np.arange(0., 100., 5.)
