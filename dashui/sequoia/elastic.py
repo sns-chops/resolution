@@ -13,6 +13,8 @@ from . import model as sequoiamodel, exp
 min_flux = 10
 
 good_Eis = exp.good_Eis
+chopper_freqs = range(60, 601, 60)
+choppers = ['High-Resolution', 'High-Flux']
 
 # interface
 def build_interface(app):
@@ -58,14 +60,28 @@ def getFlux_vs_freq_data(data, Ei, name, chopper_index):
     plot_opts1.update(extra_condition = ((data.intensity>min_flux)&(data.vdata.chopper_choice==chopper_index)))
     plot =  data.createPlotXY(Ei, 'chopper_freqs', 'intensity', **plot_opts1)
     plot.name = 'Experimental: '  + name
-    return plot
+    # model
+    x = chopper_freqs
+    chopper_mode = choppers[chopper_index]
+    y_pychop = [sequoiamodel.elastic_res_flux(chopper_mode, chopper_freq=_, Ei=Ei)[1] for _ in x]
+    import plotly.graph_objs as go
+    modelplot = go.Scatter(x=x,y=y_pychop,mode='lines')
+    modelplot.name = 'PyChop: ' + name
+    return [plot, modelplot]
 
 def getFWHM_vs_freq_data(data, Ei, name, chopper_index):
     plot_opts1 = dict(plot_opts)
     plot_opts1.update(extra_condition = ((data.intensity>min_flux)&(data.vdata.chopper_choice==chopper_index)))
     plot =  data.createPlotXY(Ei, 'chopper_freqs', 'FWHM', **plot_opts1)
     plot.name = 'Experimental: '  + name
-    return plot
+    # model
+    x = chopper_freqs
+    chopper_mode = choppers[chopper_index]
+    y_pychop = [sequoiamodel.elastic_res_flux(chopper_mode, chopper_freq=_, Ei=Ei)[0] for _ in x]
+    import plotly.graph_objs as go
+    modelplot = go.Scatter(x=x,y=y_pychop,mode='lines')
+    modelplot.name = 'PyChop: ' + name
+    return [plot, modelplot]
 
 def build_callbacks(app):
     @app.callback(
@@ -83,14 +99,14 @@ def build_callbacks(app):
             getFlux_vs_FWHMdata(exp.alldata, Ei, 'High resolution', 0),
             getFlux_vs_FWHMdata(exp.alldata, Ei, 'High flux', 1),
         ]
-        data2 = [
-            getFWHM_vs_freq_data(exp.alldata, Ei, 'High resolution', 0),
-            getFWHM_vs_freq_data(exp.alldata, Ei, 'High flux', 1),
-        ]
-        data3 = [
-            getFlux_vs_freq_data(exp.alldata, Ei, 'High resolution', 0),
-            getFlux_vs_freq_data(exp.alldata, Ei, 'High flux', 1),
-        ]
+        data2 = (
+            getFWHM_vs_freq_data(exp.alldata, Ei, 'High resolution', 0) \
+            + getFWHM_vs_freq_data(exp.alldata, Ei, 'High flux', 1)
+        )
+        data3 = (
+            getFlux_vs_freq_data(exp.alldata, Ei, 'High resolution', 0) \
+            + getFlux_vs_freq_data(exp.alldata, Ei, 'High flux', 1)
+        )
         return [
             {
                 'data': data,
