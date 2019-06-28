@@ -15,10 +15,26 @@ def res_vs_E(E, chopper='', chopper_freq=600., Ei=100.):
     return res
 
 def elastic_res_flux(chopper='SEQUOIA-100-1.5-SMI', chopper_freq=600., Ei=100.):
-    instrument = PyChop2(yamlpath, chopper, chopper_freq)
+    instrument = _getModel(yamlpath, chopper, chopper_freq)
     res, flux = instrument.getResFlux(Etrans=0., Ei_in=Ei)
     return res[0], flux[0]*3*deteff(Ei)*absorption(Ei)*Ei
 
+def elastic_resolution(chopper='SEQUOIA-100-1.5-SMI', chopper_freq=600., Ei=100.):
+    instrument = _getModel(yamlpath, chopper, chopper_freq)
+    try:
+        return instrument.getResolution(Etrans=0., Ei_in=Ei)[0]
+    except:
+        return 0.
+
+model_cache = {}
+def _getModel(path, chopper, chopper_freq):
+    key = path, chopper, chopper_freq
+    if key not in model_cache:
+        model = PyChop2(path, chopper, chopper_freq)
+        model_cache[key] = model
+    else:
+        model = model_cache[key]
+    return model
 
 #https://jupyter.sns.gov/user/lj7/notebooks/dv/sns-chops/resolution/SEQUOIA/PyChop/pychop%20-%20Intensity%20and%20VRes_vs_Ei.ipynb
 #
