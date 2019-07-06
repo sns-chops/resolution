@@ -31,8 +31,10 @@ for instr in instruments:
     tabs.append(tab)
 
 app.layout = html.Div([
-    dcc.Tabs(tabs, vertical=True)
+    dcc.Tabs(tabs, vertical=True),
 ])
+app.scripts.append_script({"external_url": "/assets/statcounter.js"})
+
 
 for instr in instruments:
     mod = eval(instr)
