@@ -21,7 +21,7 @@ def build_interface(app):
     # select chopper mode
     chopper_mode = dcc.Dropdown(
         id='cncs_chopper_mode',
-        value='High Resolution',
+        value='High Flux',
         options = [dict(label=str(_), value=_) for _ in chopper_modes+['all']],
     )
     return html.Div(children=[

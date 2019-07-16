@@ -30,7 +30,7 @@ FC_widget_elements = [
             dict(label='Intermediate', value='Intermediate'),
             dict(label='High Flux', value='High Flux'),
         ],
-        value = 'High Resolution',
+        value = 'High Flux',
     ),
 ]
 
