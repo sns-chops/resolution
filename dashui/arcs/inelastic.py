@@ -14,7 +14,7 @@ import dash.dependencies as dd
 
 import numpy as np
 from . import model as arcsmodel, exp
-from widget_utils import send_file
+import widget_utils as wu
 
 # chopper freqs
 chopper_freqs = range(60, 601, 60)
@@ -69,6 +69,13 @@ def build_interface(app):
             dcc.Markdown('', id='arcs-summary'),
         ]),
 
+        # formula
+        html.Details([
+            html.Summary("Polynomial fit for the energy-transfer (x) dependence of resolution (FWHM)"),
+            html.Div(id='arcs-pychop-polyfit-python-formula'),
+            html.Div(id='arcs-pychop-polyfit-matlab-formula'),
+        ]),
+
         # plot
         html.Div([
             dcc.Graph(
@@ -88,6 +95,8 @@ def build_callbacks(app):
          dd.Output(component_id='arcs-status', component_property='children'),
          dd.Output('arcs-download-link', 'href'),
          dd.Output('arcs-summary', 'children'),
+         dd.Output('arcs-pychop-polyfit-python-formula', 'children'),
+         dd.Output('arcs-pychop-polyfit-matlab-formula', 'children'),
         ],
         [dd.Input('arcs-calculate-button', 'n_clicks'),
          ],
@@ -105,10 +114,15 @@ def build_callbacks(app):
             curve = {}
             downloadlink = ''
             summary = ''
+            python_formula = ''
+            matlab_formula = ''
         else:
+            order = 3
+            yfit, python_formula, matlab_formula = wu.polyfit(E, res, order)
             curve = {
                 'data': [
                     {'x': E, 'y': res, 'type': 'point', 'name': 'resolution'},
+                    {'x': E, 'y': yfit, 'type': 'lines', 'name': 'resolution polynomial fit'},
                 ],
                 'layout': {
                     'title': 'Energy dependence of resolution (PyChop)',
@@ -126,7 +140,7 @@ def build_callbacks(app):
                 summary = ''
             else:
                 status = ''
-                downloadlink = '/download?chopper_select=%s&chopper_freq=%s&Ei=%s' % (
+                downloadlink = '/download/arcs?chopper_select=%s&chopper_freq=%s&Ei=%s' % (
                     chopper_select, chopper_freq, Ei)
                 elastic_res,flux = arcsmodel.elastic_res_flux(chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
                 data = exp.data[chopper_select]
@@ -139,9 +153,9 @@ def build_callbacks(app):
                     flux = '%.3g (PyChop)' % flux
                 summary = summary_format_str.format(
                     el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei, flux=flux)
-        return curve, status, downloadlink, summary
+        return curve, status, downloadlink, summary, python_formula, matlab_formula
 
-    @app.server.route('/download')
+    @app.server.route('/download/arcs')
     def download_csv():
         d = {}
         keys = ['chopper_select', 'chopper_freq', 'Ei']
@@ -152,7 +166,7 @@ def build_callbacks(app):
             d[k] = value
         E, res = get_data(**d)
         filename = "arcs_res_{chopper_select}_{chopper_freq}_Ei_{Ei}.csv".format(**d)
-        return send_file(np.array([E,res]).T, filename)
+        return wu.send_file(np.array([E,res]).T, filename)
 
     return
 
