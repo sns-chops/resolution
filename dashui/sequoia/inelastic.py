@@ -130,8 +130,8 @@ def build_callbacks(app):
                 summary = ''
             else:
                 status = ''
-                downloadlink = '/download/sequoia?chopper_select=%s&Ei=%s' % (
-                    chopper_select, Ei)
+                downloadlink = '/download/sequoia?chopper_select=%s&chopper_freq=%s&Ei=%s' % (
+                    chopper_select, chopper_freq, Ei)
                 elastic_res,flux = sequoiamodel.elastic_res_flux(
                     chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
                 # data = exp.data[chopper_select]
@@ -149,7 +149,7 @@ def build_callbacks(app):
     @app.server.route('/download/sequoia')
     def sequoia_download_csv():
         d = {}
-        keys = ['chopper_select', 'Ei']
+        keys = ['chopper_select', 'chopper_freq', 'Ei']
         for k in keys:
             value = flask.request.args.get(k)
             try: value = float(value)
