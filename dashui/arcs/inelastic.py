@@ -211,7 +211,13 @@ def build_callbacks(app):
     def handle_convolution_upload(uploaded_contents, uploaded_filename, uploaded_last_modified):
         if uploaded_contents is None: return []
         # load data
-        E, I = dataarr_from_uploaded_ascii(uploaded_contents).T
+        try:
+            E, I = dataarr_from_uploaded_ascii(uploaded_contents).T
+        except Exception as e:
+            return [html.P("Failed to load %s as 2-col ascii" % uploaded_filename,
+                           style={'color': 'red', 'fontSize': 14})]            
+            import traceback as tb
+            return [html.Pre(tb.format_exc(), style={'color': 'red', 'fontSize': 14})]
         # plot
         curve = {
             'data': [
