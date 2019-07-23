@@ -96,7 +96,7 @@ def convolution_panel():
     return html.Div([
         html.Details([
             html.Summary('Convolution'),
-            html.Div("convolution help"),
+            html.Div("Upload a 2-col ascii file for the I vs E curve, and calculate the curve with instrument broadening"),
             ]),
         
         dcc.Upload(
