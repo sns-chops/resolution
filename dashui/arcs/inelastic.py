@@ -120,11 +120,7 @@ def convolution_panel():
         ),
 
         # plot
-        html.Div([
-            dcc.Graph(
-                id='arcs-uploaded-IE',
-            ),
-        ], style=dict(width="40em", margin='.3em')),
+        html.Div(id='arcs-uploaded-IE-wrapper', style=dict(width="40em", margin='.3em')),
         
     ])
 
@@ -208,12 +204,12 @@ def build_callbacks(app):
         return wu.send_file(np.array([E,res]).T, filename)
 
     # convolution
-    @app.callback(dd.Output('arcs-uploaded-IE', component_property='figure'),
+    @app.callback(dd.Output('arcs-uploaded-IE-wrapper', component_property='children'),
                   [dd.Input('upload-data', 'contents')],
                   [dd.State('upload-data', 'filename'),
                    dd.State('upload-data', 'last_modified')])
     def handle_convolution_upload(uploaded_contents, uploaded_filename, uploaded_last_modified):
-        if uploaded_contents is None: return {}
+        if uploaded_contents is None: return []
         # load data
         E, I = dataarr_from_uploaded_ascii(uploaded_contents).T
         # plot
@@ -231,7 +227,7 @@ def build_callbacks(app):
                 }
             }
         }
-        return curve
+        return [dcc.Graph(figure=curve)]
 
     return
 
