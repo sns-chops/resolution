@@ -15,6 +15,7 @@ import dash.dependencies as dd
 import numpy as np
 from . import model as arcsmodel, exp
 import widget_utils as wu
+import convolution
 
 # chopper freqs
 chopper_freqs = range(60, 601, 60)
@@ -46,6 +47,9 @@ FC_widget_elements = [
     html.Label('Fermi chopper frequency'),
     dcc.Dropdown(id='arcs_chopper_freq', value=600, options=chopper_freq_opts),
 ]
+
+# convolution
+conv_interface, conv_callback = convolution.create('arcs')
 
 def build_interface(app):
     return html.Div(children=[
@@ -88,41 +92,9 @@ def build_interface(app):
 
         html.Hr(),
         # convolution
-        convolution_panel(),
+        conv_interface(app),
     ])
 
-
-def convolution_panel():
-    return html.Div([
-        html.Details([
-            html.Summary('Convolution'),
-            html.Div("Upload a 2-col ascii file for the I vs E curve, and calculate the curve with instrument broadening"),
-            ]),
-        
-        dcc.Upload(
-            id='upload-data',
-            children=html.Div([
-                'Drag and Drop or ',
-                html.A('Select a file')
-            ]),
-            style={
-                'width': '100%',
-                'height': '60px',
-                'lineHeight': '60px',
-                'borderWidth': '1px',
-                'borderStyle': 'dashed',
-                'borderRadius': '5px',
-                'textAlign': 'center',
-                'margin': '10px'
-            },
-            # Allow multiple files to be uploaded
-            multiple=False
-        ),
-
-        # plot
-        html.Div(id='arcs-uploaded-IE-wrapper', style=dict(width="40em", margin='.3em')),
-        
-    ])
 
 def build_callbacks(app):
     @app.callback(
@@ -203,38 +175,7 @@ def build_callbacks(app):
         filename = "arcs_res_{chopper_select}_{chopper_freq}_Ei_{Ei}.csv".format(**d)
         return wu.send_file(np.array([E,res]).T, filename)
 
-    # convolution
-    @app.callback(dd.Output('arcs-uploaded-IE-wrapper', component_property='children'),
-                  [dd.Input('upload-data', 'contents')],
-                  [dd.State('upload-data', 'filename'),
-                   dd.State('upload-data', 'last_modified')])
-    def handle_convolution_upload(uploaded_contents, uploaded_filename, uploaded_last_modified):
-        if uploaded_contents is None: return []
-        # load data
-        try:
-            E, I = dataarr_from_uploaded_ascii(uploaded_contents).T
-        except Exception as e:
-            return [html.P("Failed to load %s as 2-col ascii" % uploaded_filename,
-                           style={'color': 'red', 'fontSize': 14})]            
-            import traceback as tb
-            return [html.Pre(tb.format_exc(), style={'color': 'red', 'fontSize': 14})]
-        # plot
-        curve = {
-            'data': [
-                {'x': E, 'y': I, 'type': 'point', 'name': 'Without resolution'},
-            ],
-            'layout': {
-                'title': 'I(E) curve',
-                'xaxis':{
-                    'title':'E (meV)'
-                },
-                'yaxis':{
-                    'title':'Intensity (arb. unit)'
-                }
-            }
-        }
-        return [dcc.Graph(figure=curve)]
-
+    conv_callback(app)
     return
 
 
