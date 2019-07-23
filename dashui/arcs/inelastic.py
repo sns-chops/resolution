@@ -86,8 +86,47 @@ def build_interface(app):
         # download button
         html.A(html.Button('Download', id='download-button'), id='arcs-download-link'),
 
+        html.Hr(),
+        # convolution
+        convolution_panel(),
     ])
 
+
+def convolution_panel():
+    return html.Div([
+        html.Details([
+            html.Summary('Convolution'),
+            html.Div("convolution help"),
+            ]),
+        
+        dcc.Upload(
+            id='upload-data',
+            children=html.Div([
+                'Drag and Drop or ',
+                html.A('Select a file')
+            ]),
+            style={
+                'width': '100%',
+                'height': '60px',
+                'lineHeight': '60px',
+                'borderWidth': '1px',
+                'borderStyle': 'dashed',
+                'borderRadius': '5px',
+                'textAlign': 'center',
+                'margin': '10px'
+            },
+            # Allow multiple files to be uploaded
+            multiple=False
+        ),
+
+        # plot
+        html.Div([
+            dcc.Graph(
+                id='arcs-uploaded-IE',
+            ),
+        ], style=dict(width="40em", margin='.3em')),
+        
+    ])
 
 def build_callbacks(app):
     @app.callback(
@@ -168,7 +207,42 @@ def build_callbacks(app):
         filename = "arcs_res_{chopper_select}_{chopper_freq}_Ei_{Ei}.csv".format(**d)
         return wu.send_file(np.array([E,res]).T, filename)
 
+    # convolution
+    @app.callback(dd.Output('arcs-uploaded-IE', component_property='figure'),
+                  [dd.Input('upload-data', 'contents')],
+                  [dd.State('upload-data', 'filename'),
+                   dd.State('upload-data', 'last_modified')])
+    def handle_convolution_upload(uploaded_contents, uploaded_filename, uploaded_last_modified):
+        if uploaded_contents is None: return {}
+        # load data
+        E, I = dataarr_from_uploaded_ascii(uploaded_contents).T
+        # plot
+        curve = {
+            'data': [
+                {'x': E, 'y': I, 'type': 'point', 'name': 'Without resolution'},
+            ],
+            'layout': {
+                'title': 'I(E) curve',
+                'xaxis':{
+                    'title':'E (meV)'
+                },
+                'yaxis':{
+                    'title':'Intensity (arb. unit)'
+                }
+            }
+        }
+        return curve
+
     return
+
+
+def dataarr_from_uploaded_ascii(uploaded_contents):
+    content_type, content_string = uploaded_contents.split(',')
+    import base64; decoded = base64.b64decode(content_string)
+    from StringIO import StringIO
+    tmp = StringIO(decoded);
+    return np.loadtxt(tmp)
+    
 
 summary_format_str = '''
 * Incident energy: {Ei} meV
