@@ -58,12 +58,10 @@ def build_callbacks(app, upload_widget_id, plot_widget_id, instrument_params, re
         dd.State(upload_widget_id, 'filename'),
         dd.State(upload_widget_id, 'last_modified')
     ] + instrument_params
-    print(inputs)
     @app.callback(dd.Output(plot_widget_id, component_property='children'),
                   [dd.Input(upload_widget_id, 'contents')],
                   inputs)
     def handle_convolution_upload(uploaded_contents, uploaded_filename, uploaded_last_modified, *args):
-        print(args)
         if uploaded_contents is None: return []
         # load data
         try:
@@ -124,9 +122,10 @@ def convolve(a, E, I):
     for i, (E1, fwhm1) in enumerate(zip(E_new, FWHM)):
         psf[i] = gaussian(E_new - E1, fwhm1/2.355) * dE
         continue
-    I = np.interp(E_new, E, I)
+    I_new = np.interp(E_new, E, I)
+    I_new[E_new<E[0]] = 0; I_new[E_new>E[-1]] = 0
     # convolve
-    y = np.dot(psf, I)
+    y = np.dot(psf, I_new)
     return E_new, y
 
 
