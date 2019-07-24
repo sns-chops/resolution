@@ -109,7 +109,7 @@ def convolve(a, E, I):
     FWHM_f = lambda E: sum( a[i]*E**(order-i) for i in range(order+1) )
     FWHM0 = FWHM_f(E[0])
     FWHM1 = FWHM_f(E[-1])
-    dE = np.mean(E[1:] - E[:-1])
+    dE = np.mean(E[1:] - E[:-1])/5.
     # expand the range
     E0 = E[0] - FWHM0*5
     E1 = E[-1] + FWHM1*5
@@ -126,7 +126,9 @@ def convolve(a, E, I):
     I_new[E_new<E[0]] = 0; I_new[E_new>E[-1]] = 0
     # convolve
     y = np.dot(psf, I_new)
-    return E_new, y
+    #
+    smaller_range = (E_new>E[0]-FWHM0) * (E_new<E[-1]+FWHM1)
+    return E_new[smaller_range], y[smaller_range]
 
 
 def gaussian(x, sigma):
