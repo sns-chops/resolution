@@ -48,8 +48,22 @@ FC_widget_elements = [
     dcc.Dropdown(id='arcs_chopper_freq', value=600, options=chopper_freq_opts),
 ]
 
+#
+def get_data(chopper_select, chopper_freq, Ei):
+    E = np.linspace(-Ei, Ei*.95, 100)
+    res = arcsmodel.res_vs_E(E, chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
+    return E, res
+
 # convolution
-conv_interface, conv_callback = convolution.create('arcs')
+conv_interface, conv_callback = convolution.create(
+    'arcs',
+    instrument_params=[
+        dd.State(component_id='arcs_chopper_select', component_property='value'),
+        dd.State(component_id='arcs_chopper_freq', component_property='value'),
+        dd.State(component_id='arcs_Ei_input', component_property='value'),
+    ],
+    res_function_calculator=get_data, # args for get_data method must match the sequence in instrument_params
+)
 
 def build_interface(app):
     return html.Div(children=[
@@ -193,9 +207,4 @@ summary_format_str = '''
 * Elastic resolution percentage: {el_res_percentage:.2f}%
 * Flux: {flux} counts/s/cm^2/MW
 '''
-
-def get_data(chopper_select, chopper_freq, Ei):
-    E = np.linspace(-Ei, Ei*.95, 100)
-    res = arcsmodel.res_vs_E(E, chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
-    return E, res
 

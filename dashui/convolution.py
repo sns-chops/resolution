@@ -10,14 +10,14 @@ import numpy as np
 import widget_utils as wu
 
 
-def create(instrument='arcs'):
+def create(instrument='arcs', instrument_params=[], res_function_calculator=None):
     "return interface builder and callback builder"
     upload_widget_id = '%s-convolution-upload' % instrument
     plot_widget_id = '%s-convolution-plot' % instrument
     def interface_builder(app):
         return convolution_panel(upload_widget_id, plot_widget_id)
     def callback_builder(app):
-        return build_callbacks(app, upload_widget_id, plot_widget_id)
+        return build_callbacks(app, upload_widget_id, plot_widget_id, instrument_params, res_function_calculator)
     return interface_builder, callback_builder
 
 
@@ -52,13 +52,18 @@ def convolution_panel(upload_widget_id, plot_widget_id):
         html.Div(id=plot_widget_id, style=dict(width="40em", margin='.3em')),
     ])
 
-def build_callbacks(app, upload_widget_id, plot_widget_id):
+def build_callbacks(app, upload_widget_id, plot_widget_id, instrument_params, res_function_calculator):
     # convolution
+    inputs = [
+        dd.State(upload_widget_id, 'filename'),
+        dd.State(upload_widget_id, 'last_modified')
+    ] + instrument_params
+    print(inputs)
     @app.callback(dd.Output(plot_widget_id, component_property='children'),
                   [dd.Input(upload_widget_id, 'contents')],
-                  [dd.State(upload_widget_id, 'filename'),
-                   dd.State(upload_widget_id, 'last_modified')])
-    def handle_convolution_upload(uploaded_contents, uploaded_filename, uploaded_last_modified):
+                  inputs)
+    def handle_convolution_upload(uploaded_contents, uploaded_filename, uploaded_last_modified, *args):
+        print(args)
         if uploaded_contents is None: return []
         # load data
         try:
@@ -68,10 +73,13 @@ def build_callbacks(app, upload_widget_id, plot_widget_id):
                            style={'color': 'red', 'fontSize': 12})]
             import traceback as tb
             return [html.Pre(tb.format_exc(), style={'color': 'red', 'fontSize': 14})]
+        # get resolution function
+        E1, res = res_function_calculator(*args)
         # plot
         curve = {
             'data': [
                 {'x': E, 'y': I, 'type': 'point', 'name': 'Without resolution'},
+                {'x': E1, 'y': res, 'type': 'point', 'name': 'FWHM'},
             ],
             'layout': {
                 'title': 'I(E) curve',
