@@ -73,13 +73,21 @@ def build_callbacks(app, upload_widget_id, plot_widget_id, instrument_params, re
                            style={'color': 'red', 'fontSize': 12})]
             import traceback as tb
             return [html.Pre(tb.format_exc(), style={'color': 'red', 'fontSize': 14})]
+        if len(E)>500:
+            return [html.P("Too many data points: %s" % len(E),
+                           style={'color': 'red', 'fontSize': 12})]
         # get resolution function
         E1, res = res_function_calculator(*args)
+        # fit
+        order = 3
+        a = np.polyfit(E1, res, order)
+        # convolve
+        E2, I2 = convolve(a, E, I)
         # plot
         curve = {
             'data': [
                 {'x': E, 'y': I, 'type': 'point', 'name': 'Without resolution'},
-                {'x': E1, 'y': res, 'type': 'point', 'name': 'FWHM'},
+                {'x': E2, 'y': I2, 'type': 'point', 'name': 'Convolved'},
             ],
             'layout': {
                 'title': 'I(E) curve',
@@ -93,6 +101,38 @@ def build_callbacks(app, upload_widget_id, plot_widget_id, instrument_params, re
         }
         return [dcc.Graph(figure=curve)]
     return
+
+def convolve(a, E, I):
+    '''a: polynomial coeffs
+    E,I: input spectrum
+    '''
+    order = len(a)-1
+    # get FWHM for each point in the input E array
+    FWHM_f = lambda E: sum( a[i]*E**(order-i) for i in range(order+1) )
+    FWHM0 = FWHM_f(E[0])
+    FWHM1 = FWHM_f(E[-1])
+    dE = np.mean(E[1:] - E[:-1])
+    # expand the range
+    E0 = E[0] - FWHM0*5
+    E1 = E[-1] + FWHM1*5
+    E_new = np.arange(E0, E1, dE)
+    # fwhm
+    FWHM = FWHM_f(E_new)
+    # matrix
+    N = len(E_new)
+    psf = np.zeros((N,N))
+    for i, (E1, fwhm1) in enumerate(zip(E_new, FWHM)):
+        psf[i] = gaussian(E_new - E1, fwhm1/2.355) * dE
+        continue
+    I = np.interp(E_new, E, I)
+    # convolve
+    y = np.dot(psf, I)
+    return E_new, y
+
+
+def gaussian(x, sigma):
+    sigma2 = sigma*sigma
+    return 1./np.sqrt(2.*np.pi)/sigma * np.exp(-x*x/2/sigma2)
 
 
 def dataarr_from_uploaded_ascii(uploaded_contents):
