@@ -5,6 +5,7 @@ Need my pychop
 ```
   $ rsync -av analysis.sns.gov:dv/PyChop PyChop
 ```
+and make sure it is in PYTHONPATH
 
 conda env
 
