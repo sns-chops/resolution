@@ -13,7 +13,7 @@ conda env
   $ conda activate dash
   $ conda config --add channels conda-forge
   $ conda config --add channels mcvine
-  $ conda install dash dash-daq scipy matplotlib pyyaml histogram waitress pandas
+  $ conda install dash dash-daq scipy matplotlib pyyaml waitress pandas
 ```
 
 And need this repo
