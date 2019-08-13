@@ -20,5 +20,4 @@ And need this repo
 
 ```
   $ git clone git@github.com:sns-chops/resolution
-  $ git checkout dash-ui
 ```
