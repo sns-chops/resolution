@@ -37,10 +37,12 @@ class WidgetFactory:
         )
         return html.Div([
             confirmBtn, # confirm configuration
-            html.H5('Convolution of energy spectrum (e.g., phonon DOS)'),
-            self.createExamplesSkeleton(app),  # examples
-            html.Div("Upload a 2-col ascii file for the I vs E curve, and calculate the curve with instrument broadening"),
-            convolution_panel(self.upload_widget_id, self.plot_widget_id), # convolution
+            html.Div([
+                html.H5('Energy spectrum (e.g., phonon DOS)'),
+                self.createExamplesSkeleton(app),  # examples
+                html.Div("Upload a 2-col ascii file for the I vs E curve, and calculate the instrument-broadened curve. The comment line should contain the unit of energy/frequency axis: meV or TeraHz"),
+                convolution_panel(self.upload_widget_id, self.plot_widget_id), # convolution
+            ], style = {"border-top": "1px solid lightgray", "margin-top": "1em"}),
         ])
 
     def createCallbacks(self, app):
