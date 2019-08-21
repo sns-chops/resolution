@@ -12,12 +12,13 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash.dependencies as dd
 
-from . import inelastic, elastic
+from . import inelastic, elastic, conv
 
 def build_interface(app):
     inel_div = inelastic.build_interface(app)
     el_div = elastic.build_interface(app)
-    inel_div.style = el_div.style = dict(border="1px solid lightgray", padding='1em')
+    conv_div = conv.build_interface(app)
+    inel_div.style = el_div.style = conv_div.style = dict(border="1px solid lightgray", padding='1em')
     return html.Div([
         html.H1(children='ARCS resolution'),
         html.Details([
@@ -53,10 +54,12 @@ The plots below are interactive plot.ly plots.
         dcc.Tabs(id="tabs", children=[
             dcc.Tab(label='Inelastic', children=[inel_div]),
             dcc.Tab(label='Elastic', children=[el_div]),
+            dcc.Tab(label='Convolution', children=[conv_div]),
             ])
         ])
 
 def build_callbacks(app):
     elastic.build_callbacks(app)
     inelastic.build_callbacks(app)
+    conv.build_callbacks(app)
     return

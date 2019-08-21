@@ -15,66 +15,22 @@ import dash.dependencies as dd
 import numpy as np
 from . import model as arcsmodel, exp
 import widget_utils as wu
-import convolution
 
-# chopper freqs
-chopper_freqs = range(60, 601, 60)
-chopper_freq_opts = [dict(label=str(f), value=f) for f in chopper_freqs]
 
-# select Ei
-Ei_widget_elements = [
-    html.Label('Incident energy (meV)'),
-    dcc.Input(id='arcs_Ei_input', type='number', value=100.),
-]
-
-# select FC
-FC_widget_elements = [
-    html.Label('Fermi chopper'),
-    dcc.Dropdown(
-        id='arcs_chopper_select',
-        options = [
-            dict(label='ARCS-100-1.5-AST', value='ARCS-100-1.5-AST'),
-            dict(label='ARCS-700-1.5-AST', value='ARCS-700-1.5-AST'),
-            dict(label='ARCS-700-0.5-AST', value='ARCS-700-0.5-AST'),
-            # dict(label='ARCS-100-1.5-SMI', value='ARCS-100-1.5-SMI'),
-            # dict(label='ARCS-700-1.5-SMI', value='ARCS-700-1.5-SMI'),
-            #dict(label='SEQ-100-2.0-AST', value='SEQ-100-2.0-AST'),
-            #dict(label='SEQ-700-3.5-AST', value='SEQ-700-3.5-AST'),
-        ],
-        value = 'ARCS-100-1.5-AST',
-    ),
-
-    html.Label('Fermi chopper frequency'),
-    dcc.Dropdown(id='arcs_chopper_freq', value=600, options=chopper_freq_opts),
-]
+from .configuration_widget import chopper_freqs, chopper_freq_opts, create
+config_widget = create()
 
 #
-def get_data(chopper_select, chopper_freq, Ei):
+def get_data(Ei, chopper_select, chopper_freq):
     E = np.linspace(-Ei, Ei*.95, 100)
     res = arcsmodel.res_vs_E(E, chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
     return E, res
-
-# convolution
-conv_interface, conv_callback = convolution.create(
-    'arcs',
-    instrument_params=[
-        dd.State(component_id='arcs_chopper_select', component_property='value'),
-        dd.State(component_id='arcs_chopper_freq', component_property='value'),
-        dd.State(component_id='arcs_Ei_input', component_property='value'),
-    ],
-    res_function_calculator=get_data, # args for get_data method must match the sequence in instrument_params
-)
 
 def build_interface(app):
     return html.Div(children=[
 
         # input fields
-        html.Table([
-            html.Tr([
-                html.Td(Ei_widget_elements),
-                html.Td(FC_widget_elements, style=dict(width="14em")),
-            ])
-        ]),
+        config_widget,
 
         # calculate button
         html.Div([html.Button('Calculate', id='arcs-calculate-button')], style=dict(padding='1em')),
@@ -103,10 +59,6 @@ def build_interface(app):
 
         # download button
         html.A(html.Button('Download', id='download-button'), id='arcs-download-link'),
-
-        html.Hr(),
-        # convolution
-        conv_interface(app),
     ])
 
 
@@ -129,7 +81,7 @@ def build_callbacks(app):
         )
     def update_output_div(n_clicks, chopper_select, chopper_freq, Ei):
         try:
-            E, res = get_data(chopper_select, chopper_freq, Ei)
+            E, res = get_data(Ei, chopper_select, chopper_freq)
         except Exception as e:
             status = str(e)
             curve = {}
@@ -188,8 +140,6 @@ def build_callbacks(app):
         E, res = get_data(**d)
         filename = "arcs_res_{chopper_select}_{chopper_freq}_Ei_{Ei}.csv".format(**d)
         return wu.send_file(np.array([E,res]).T, filename)
-
-    conv_callback(app)
     return
 
 

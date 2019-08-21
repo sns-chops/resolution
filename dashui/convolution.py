@@ -12,93 +12,191 @@ import widget_utils as wu
 
 def create(instrument='arcs', instrument_params=[], res_function_calculator=None):
     "return interface builder and callback builder"
-    upload_widget_id = '%s-convolution-upload' % instrument
-    plot_widget_id = '%s-convolution-plot' % instrument
-    def interface_builder(app):
-        return convolution_panel(upload_widget_id, plot_widget_id)
-    def callback_builder(app):
-        return build_callbacks(app, upload_widget_id, plot_widget_id, instrument_params, res_function_calculator)
-    return interface_builder, callback_builder
+    factory = WidgetFactory(instrument, instrument_params, res_function_calculator)
+    return factory.createInterface, factory.createCallbacks
 
 
-def convolution_panel(upload_widget_id, plot_widget_id):
-    return html.Div([
-        html.Details([
-            html.Summary('Convolution'),
+class WidgetFactory:
+
+    def __init__(self, instrument='arcs', instrument_params=[], res_function_calculator=None):
+        self.instrument = instrument
+        self.instrument_params = instrument_params
+        self.res_function_calculator = res_function_calculator
+        self.upload_widget_id = '%s-convolution-upload' % instrument
+        self.plot_widget_id = '%s-convolution-plot' % instrument
+        self.conv_example_id = "%s-conv-example" % self.instrument
+        self.confirm_config_btn_id = '%s-confirm-config-button' % self.instrument
+        return
+
+    def createInterface(self, app):
+        # button to confirm instrument configuration
+        confirmBtn = html.Button(
+            'Confirm configuration',
+            id=self.confirm_config_btn_id,
+            style={'margin': '.5em'}
+        )
+        return html.Div([
+            confirmBtn, # confirm configuration
+            html.H5('Convolution of energy spectrum (e.g., phonon DOS)'),
+            self.createExamplesSkeleton(app),  # examples
             html.Div("Upload a 2-col ascii file for the I vs E curve, and calculate the curve with instrument broadening"),
-            ]),
+            convolution_panel(self.upload_widget_id, self.plot_widget_id), # convolution
+        ])
+
+    def createCallbacks(self, app):
+        upload_widget_id = self.upload_widget_id
+        plot_widget_id = self.plot_widget_id
+        instrument_params = self.instrument_params
+        res_function_calculator = self.res_function_calculator
+
+        # configuration
+        @app.callback(
+            dd.Output(self.conv_example_id, component_property='children'),
+            [dd.Input(self.confirm_config_btn_id, 'n_clicks'),],
+            instrument_params
+        )
+        def handle_confirm_instrumentconfig(btn, *args):
+            return self.exampleCurves(*args)
         
-        dcc.Upload(
-            id=upload_widget_id,
-            children=html.Div([
-                'Drag and Drop or ',
-                html.A('Select a file')
-            ]),
-            style={
-                'width': '100%',
-                'height': '60px',
-                'lineHeight': '60px',
-                'borderWidth': '1px',
-                'borderStyle': 'dashed',
-                'borderRadius': '5px',
-                'textAlign': 'center',
-                'margin': '10px'
-            },
-            # Allow multiple files to be uploaded
-            multiple=False
-        ),
+        # convolution
+        inputs = [
+            dd.State(upload_widget_id, 'filename'),
+            dd.State(upload_widget_id, 'last_modified')
+        ] + instrument_params
+        @app.callback(
+            dd.Output(plot_widget_id, component_property='children'),
+            [dd.Input(upload_widget_id, 'contents')],
+            inputs)
+        def handle_convolution_upload(uploaded_contents, uploaded_filename, uploaded_last_modified, *args):
+            if uploaded_contents is None: return []
+            # load data
+            try:
+                E, I = dataarr_from_uploaded_ascii(uploaded_contents).T
+            except Exception as e:
+                return [html.P("Failed to load %s as 2-col ascii" % uploaded_filename,
+                               style={'color': 'red', 'fontSize': 12})]
+                import traceback as tb
+                return [html.Pre(tb.format_exc(), style={'color': 'red', 'fontSize': 14})]
+            if len(E)>1000:
+                return [html.P("Too many data points: %s" % len(E),
+                               style={'color': 'red', 'fontSize': 12})]
+            # get resolution function
+            E1, res = res_function_calculator(*args)
+            # fit
+            order = 3
+            a = np.polyfit(E1, res, order)
+            # convolve
+            E2, I2 = convolve(a, E, I)
+            # plot
+            curve = {
+                'data': [
+                    {'x': E, 'y': I, 'type': 'point', 'name': 'Without resolution'},
+                    {'x': E2, 'y': I2, 'type': 'point', 'name': 'Convolved'},
+                ],
+                'layout': {
+                    'title': 'I(E) curve',
+                    'xaxis':{
+                        'title':'E (meV)'
+                    },
+                    'yaxis':{
+                        'title':'Intensity (arb. unit)'
+                    }
+                }
+            }
+            return [dcc.Graph(figure=curve)]
+        return
 
-        # plot
-        html.Div(id=plot_widget_id, style=dict(width="40em", margin='.3em')),
-    ])
+    def exampleCurves(self, Ei, *args):
+        print Ei, args
+        E = np.linspace(-.5*Ei, Ei*.95, 100)
+        I = np.zeros(E.size)
+        indexes = range(5, 100, 12)
+        for ind in indexes: I[ind] = 1.
+        cE, cI = self.convolve((E,I), Ei, *args)
+        return html.Div([IEplot((E,I), "Original"), IEplot((cE,cI), "Convolved")])
 
-def build_callbacks(app, upload_widget_id, plot_widget_id, instrument_params, res_function_calculator):
-    # convolution
-    inputs = [
-        dd.State(upload_widget_id, 'filename'),
-        dd.State(upload_widget_id, 'last_modified')
-    ] + instrument_params
-    @app.callback(dd.Output(plot_widget_id, component_property='children'),
-                  [dd.Input(upload_widget_id, 'contents')],
-                  inputs)
-    def handle_convolution_upload(uploaded_contents, uploaded_filename, uploaded_last_modified, *args):
-        if uploaded_contents is None: return []
-        # load data
-        try:
-            E, I = dataarr_from_uploaded_ascii(uploaded_contents).T
-        except Exception as e:
-            return [html.P("Failed to load %s as 2-col ascii" % uploaded_filename,
-                           style={'color': 'red', 'fontSize': 12})]
-            import traceback as tb
-            return [html.Pre(tb.format_exc(), style={'color': 'red', 'fontSize': 14})]
-        if len(E)>500:
-            return [html.P("Too many data points: %s" % len(E),
-                           style={'color': 'red', 'fontSize': 12})]
+    def createExamplesSkeleton(self, app):
+        plots = html.Div(id = self.conv_example_id)
+        return html.Details([
+            html.Summary('Examples'),
+            plots,
+        ])                
+
+    def convolve(self, IE, *args):
         # get resolution function
-        E1, res = res_function_calculator(*args)
+        E1, res = self.res_function_calculator(*args)
         # fit
         order = 3
         a = np.polyfit(E1, res, order)
         # convolve
+        E, I = IE
         E2, I2 = convolve(a, E, I)
-        # plot
-        curve = {
-            'data': [
-                {'x': E, 'y': I, 'type': 'point', 'name': 'Without resolution'},
-                {'x': E2, 'y': I2, 'type': 'point', 'name': 'Convolved'},
-            ],
-            'layout': {
-                'title': 'I(E) curve',
-                'xaxis':{
-                    'title':'E (meV)'
-                },
-                'yaxis':{
-                    'title':'Intensity (arb. unit)'
-                }
-            }
+        return E2, I2
+    
+
+
+def IEplot(IE, title, display="inline-block"):
+    "display two plots. left: original I(E), right: convolved I(E)"
+    E, I = IE
+    # plot
+    curve = {
+        'data': [
+            {'x': E, 'y': I, 'type': 'point', 'name': 'Without resolution'},
+        ],
+        'layout': {
+            'title': title,
+            'xaxis':{
+                'title':'E (meV)'
+            },
+            'yaxis':{
+                'title':'Intensity (arb. unit)'
+            },
         }
-        return [dcc.Graph(figure=curve)]
-    return
+    }
+    return html.Div(
+        [
+            dcc.Graph(figure=curve, style={'height': '25em', 'width': '30em'}),
+        ],
+        style = {
+            'display': display
+        }
+    )
+    
+
+
+def convolution_panel(upload_widget_id, plot_widget_id):
+    return html.Div([
+        html.Div(
+            dcc.Upload(
+                id=upload_widget_id,
+                children=html.Div([
+                    'Drag and Drop or ',
+                    html.A('Select a file')
+                ]),
+                style={
+                    'width': '100%',
+                    'height': '60px',
+                    'lineHeight': '60px',
+                    'borderWidth': '1px',
+                    'borderStyle': 'dashed',
+                    'borderRadius': '5px',
+                    'textAlign': 'center',
+                    'margin': '10px',
+                },
+                # Allow multiple files to be uploaded
+            multiple=False
+            ),
+            style= {
+                # 'display': 'inline-block',
+            }
+        ),
+        # plot
+        html.Div(id=plot_widget_id, style=dict(
+            width="40em", margin='.3em',
+            #display='inline-block'
+        )),
+    ])
+
 
 def convolve(a, E, I):
     '''a: polynomial coeffs
