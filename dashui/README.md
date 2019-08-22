@@ -14,7 +14,8 @@ conda env
   $ conda activate dash
   $ conda config --add channels conda-forge
   $ conda config --add channels mcvine
-  $ conda install dash dash-daq scipy matplotlib pyyaml waitress pandas
+  $ conda config --add channels mantid
+  $ conda install dash dash-daq scipy matplotlib pyyaml waitress pandas mcvine
 ```
 
 And need this repo
