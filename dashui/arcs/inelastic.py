@@ -30,6 +30,8 @@ config_widget = create()
 def get_data(Ei, chopper_select, chopper_freq):
     E = np.linspace(-Ei, Ei*.95, 100)
     res = arcsmodel.res_vs_E(E, chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
+    if np.any(res!=res):
+        raise RuntimeError("Error in calculating resolution")
     return E, res
 
 from convolution import WidgetFactory as ConvolutionWF
@@ -104,7 +106,9 @@ def build_callbacks(app):
                           chopper_select, chopper_freq, Ei):
         try:
             E, res = get_data(Ei, chopper_select, chopper_freq)
+            failed = False
         except Exception as e:
+            failed = True
             status = str(e)
             curve = {}
             downloadlink = ''
@@ -148,13 +152,19 @@ def build_callbacks(app):
                     flux = '%.3g (PyChop)' % flux
                 summary = summary_format_str.format(
                     el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei, flux=flux)
-        return (
-            curve, status, downloadlink, summary, python_formula, matlab_formula,
-            conv_widget_factory.exampleCurves(Ei, chopper_select, chopper_freq),
-            conv_widget_factory.createPlotForUploadedData(
+        if failed:
+            examplecurves = {}
+            convplot = {}
+        else:
+            examplecurves = conv_widget_factory.exampleCurves(Ei, chopper_select, chopper_freq),
+            convplot = conv_widget_factory.createPlotForUploadedData(
                 uploaded_contents, uploaded_filename, uploaded_last_modified,
                 Ei, chopper_select, chopper_freq,
             )
+            
+        return (
+            curve, status, downloadlink, summary, python_formula, matlab_formula,
+            examplecurves, convplot,
         )
             
 

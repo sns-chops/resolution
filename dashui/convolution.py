@@ -83,7 +83,7 @@ class WidgetFactory:
         return html.Div([IEplot((E,I), "Original"), IEplot((cE,cI), "Convolved")])
 
     def createExamplesSkeleton(self, app):
-        plots = html.Div(id = self.conv_example_id)
+        plots = dcc.Loading(html.Div(id = self.conv_example_id))
         return html.Details([
             html.Summary('Example: delta functions'),
             plots,
