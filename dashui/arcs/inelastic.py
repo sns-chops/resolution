@@ -17,6 +17,12 @@ from . import model as arcsmodel, exp
 import widget_utils as wu
 
 
+instrument_params = [
+    dd.State(component_id='arcs_Ei_input', component_property='value'),
+    dd.State(component_id='arcs_chopper_select', component_property='value'),
+    dd.State(component_id='arcs_chopper_freq', component_property='value'),
+]
+
 from .configuration_widget import chopper_freqs, chopper_freq_opts, create
 config_widget = create()
 
@@ -26,7 +32,30 @@ def get_data(Ei, chopper_select, chopper_freq):
     res = arcsmodel.res_vs_E(E, chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
     return E, res
 
+from convolution import WidgetFactory as ConvolutionWF
+conv_widget_factory = ConvolutionWF(instrument='arcs', instrument_params=instrument_params, res_function_calculator=get_data)
+
 def build_interface(app):
+    tab_style = dict(border="1px solid lightgray", padding='1em')
+    summary = html.Div([
+        dcc.Markdown('', id='arcs-summary'),
+    ], style = tab_style,
+    )
+    formula = html.Details([
+        html.Summary("Polynomial fit for the energy-transfer (x) dependence of resolution (FWHM)"),
+        html.Div(id='arcs-pychop-polyfit-python-formula'),
+        html.Div(id='arcs-pychop-polyfit-matlab-formula'),
+    ])
+    plot = html.Div([
+        dcc.Graph(
+            id='arcs-res_vs_E',
+        ),
+    ], style=dict(width="40em", margin='.3em'))
+    plotcontainer = html.Div([formula, plot], style=tab_style)
+    conv = conv_widget_factory.createInterface(app)
+    conv.style = tab_style.copy()
+    conv.style['width'] = '60em'
+
     return html.Div(children=[
 
         # input fields
@@ -37,26 +66,12 @@ def build_interface(app):
         # status
         html.Div(id='arcs-status', children='', style=dict(padding='1em', color='red')),
 
-        # summary
-        html.Details([
-            html.Summary('Summary'),
-            dcc.Markdown('', id='arcs-summary'),
+        #
+        dcc.Tabs(id="arcs-inel-tabs", children=[
+            dcc.Tab(label='Summary', children=[summary], style=tab_style),
+            dcc.Tab(label='Plot', children=[plotcontainer], style=tab_style),
+            dcc.Tab(label='Convolution', children=[conv], style=tab_style),
         ]),
-
-        # formula
-        html.Details([
-            html.Summary("Polynomial fit for the energy-transfer (x) dependence of resolution (FWHM)"),
-            html.Div(id='arcs-pychop-polyfit-python-formula'),
-            html.Div(id='arcs-pychop-polyfit-matlab-formula'),
-        ]),
-
-        # plot
-        html.Div([
-            dcc.Graph(
-                id='arcs-res_vs_E',
-            ),
-        ], style=dict(width="40em", margin='.3em')),
-
         # download button
         html.A(html.Button('Download', id='download-button'), id='arcs-download-link'),
     ])
@@ -70,16 +85,21 @@ def build_callbacks(app):
          dd.Output('arcs-summary', 'children'),
          dd.Output('arcs-pychop-polyfit-python-formula', 'children'),
          dd.Output('arcs-pychop-polyfit-matlab-formula', 'children'),
+         dd.Output(conv_widget_factory.conv_example_id, component_property='children'),
+         dd.Output(conv_widget_factory.plot_widget_id, component_property='children'),
         ],
         [dd.Input('arcs-calculate-button', 'n_clicks'),
-         ],
-        [
+         dd.Input(conv_widget_factory.upload_widget_id, 'contents'),
+        ],
+        [dd.State(conv_widget_factory.upload_widget_id, 'filename'),
+         dd.State(conv_widget_factory.upload_widget_id, 'last_modified'),
          dd.State(component_id='arcs_chopper_select', component_property='value'),
          dd.State(component_id='arcs_chopper_freq', component_property='value'),
          dd.State(component_id='arcs_Ei_input', component_property='value'),
         ]
         )
-    def update_output_div(n_clicks, chopper_select, chopper_freq, Ei):
+    def update_output_div(calc_btn, uploaded_contents, uploaded_filename, uploaded_last_modified,
+                          chopper_select, chopper_freq, Ei):
         try:
             E, res = get_data(Ei, chopper_select, chopper_freq)
         except Exception as e:
@@ -126,7 +146,15 @@ def build_callbacks(app):
                     flux = '%.3g (PyChop)' % flux
                 summary = summary_format_str.format(
                     el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei, flux=flux)
-        return curve, status, downloadlink, summary, python_formula, matlab_formula
+        return (
+            curve, status, downloadlink, summary, python_formula, matlab_formula,
+            conv_widget_factory.exampleCurves(Ei, chopper_select, chopper_freq),
+            conv_widget_factory.createPlotForUploadedData(
+                uploaded_contents, uploaded_filename, uploaded_last_modified,
+                Ei, chopper_select, chopper_freq,
+            )
+        )
+            
 
     @app.server.route('/download/arcs')
     def download_csv():

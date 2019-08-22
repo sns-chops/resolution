@@ -25,51 +25,21 @@ class WidgetFactory:
         self.upload_widget_id = '%s-convolution-upload' % instrument
         self.plot_widget_id = '%s-convolution-plot' % instrument
         self.conv_example_id = "%s-conv-example" % self.instrument
-        self.confirm_config_btn_id = '%s-confirm-config-button' % self.instrument
         return
 
     def createInterface(self, app):
-        # button to confirm instrument configuration
-        confirmBtn = html.Button(
-            'Confirm configuration',
-            id=self.confirm_config_btn_id,
-            style={'margin': '.5em'}
-        )
         return html.Div([
-            confirmBtn, # confirm configuration
             html.Div([
                 html.H5('Energy spectrum (e.g., phonon DOS)'),
                 self.createExamplesSkeleton(app),  # examples
-                html.Div("Upload a 2-col ascii file for the I vs E curve, and calculate the instrument-broadened curve. The comment line should contain the unit of energy/frequency axis: meV or TeraHz"),
+                html.Div(
+                    "Upload a 2-col ascii file for the I vs E curve, and calculate the instrument-broadened curve. "
+                    "The comment line should contain the unit of energy/frequency axis: meV or TeraHz",
+                    style=dict(margin="1em 0"),
+                ),
                 convolution_panel(self.upload_widget_id, self.plot_widget_id), # convolution
-            ], style = {"border-top": "1px solid lightgray", "margin-top": "1em"}),
+            ], style = {"margin-top": "1em"}),
         ])
-
-    def createCallbacks(self, app):
-        upload_widget_id = self.upload_widget_id
-        plot_widget_id = self.plot_widget_id
-        instrument_params = self.instrument_params
-        res_function_calculator = self.res_function_calculator
-
-        # configuration and convolution
-        states = [
-            dd.State(upload_widget_id, 'filename'),
-            dd.State(upload_widget_id, 'last_modified')
-        ] + instrument_params
-        @app.callback(
-            [dd.Output(self.conv_example_id, component_property='children'),
-             dd.Output(plot_widget_id, component_property='children'),
-             ],
-            [dd.Input(self.confirm_config_btn_id, 'n_clicks'),
-             dd.Input(upload_widget_id, 'contents')],
-            states,
-        )
-        def handle_confirm_instrumentconfig(btn, uploaded_contents, uploaded_filename, uploaded_last_modified, *args):
-            return [
-                self.exampleCurves(*args),
-                self.createPlotForUploadedData(uploaded_contents, uploaded_filename, uploaded_last_modified, *args),
-            ]
-        return
 
     def createPlotForUploadedData(self, uploaded_contents, uploaded_filename, uploaded_last_modified, *args):
         if uploaded_contents is None: return []
@@ -115,13 +85,15 @@ class WidgetFactory:
     def createExamplesSkeleton(self, app):
         plots = html.Div(id = self.conv_example_id)
         return html.Details([
-            html.Summary('Examples'),
+            html.Summary('Example: delta functions'),
             plots,
         ])                
 
     def convolve(self, IE, *args):
         # get resolution function
         E1, res = self.res_function_calculator(*args)
+        if np.any(res!=res):
+            raise RuntimeError("invalid resolution function")
         # fit
         order = 3
         a = np.polyfit(E1, res, order)
