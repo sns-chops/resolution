@@ -38,7 +38,7 @@ conv_widget_factory = ConvolutionWF(instrument='arcs', instrument_params=instrum
 def build_interface(app):
     tab_style = dict(border="1px solid lightgray", padding='1em')
     summary = html.Div([
-        dcc.Markdown('', id='arcs-summary'),
+        dcc.Loading(dcc.Markdown('', id='arcs-summary')),
     ], style = tab_style,
     )
     formula = html.Details([
@@ -51,7 +51,11 @@ def build_interface(app):
             id='arcs-res_vs_E',
         ),
     ], style=dict(width="40em", margin='.3em'))
-    plotcontainer = html.Div([formula, plot], style=tab_style)
+    # download button
+    download = html.A(html.Button('Download', id='download-button'), id='arcs-download-link')
+    #
+    plotcontainer = html.Div([formula, plot, download], style=tab_style)
+    #
     conv = conv_widget_factory.createInterface(app)
     conv.style = tab_style.copy()
     conv.style['width'] = '60em'
@@ -72,8 +76,6 @@ def build_interface(app):
             dcc.Tab(label='Plot', children=[plotcontainer], style=tab_style),
             dcc.Tab(label='Convolution', children=[conv], style=tab_style),
         ]),
-        # download button
-        html.A(html.Button('Download', id='download-button'), id='arcs-download-link'),
     ])
 
 

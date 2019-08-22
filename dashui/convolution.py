@@ -71,7 +71,7 @@ class WidgetFactory:
                 }
             }
         }
-        return [dcc.Graph(figure=curve)]
+        return [dcc.Graph(figure=curve, style={'height': '25em', 'width': '50em'})]
     
     def exampleCurves(self, Ei, *args):
         print Ei, args
@@ -135,6 +135,12 @@ def IEplot(IE, title, display="inline-block"):
 
 def convolution_panel(upload_widget_id, plot_widget_id):
     return html.Div([
+        # plot
+        dcc.Loading(
+            html.Div(id=plot_widget_id, style=dict(
+                width="40em", margin='.3em',
+            ))
+        ),
         html.Div(
             dcc.Upload(
                 id=upload_widget_id,
@@ -155,15 +161,7 @@ def convolution_panel(upload_widget_id, plot_widget_id):
                 # Allow multiple files to be uploaded
             multiple=False
             ),
-            style= {
-                # 'display': 'inline-block',
-            }
         ),
-        # plot
-        html.Div(id=plot_widget_id, style=dict(
-            width="40em", margin='.3em',
-            #display='inline-block'
-        )),
     ])
 
 
