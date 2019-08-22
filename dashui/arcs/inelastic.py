@@ -153,8 +153,8 @@ def build_callbacks(app):
                 summary = summary_format_str.format(
                     el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei, flux=flux)
         if failed:
-            examplecurves = {}
-            convplot = {}
+            examplecurves = ''
+            convplot = ''
         else:
             examplecurves = conv_widget_factory.exampleCurves(Ei, chopper_select, chopper_freq),
             convplot = conv_widget_factory.createPlotForUploadedData(

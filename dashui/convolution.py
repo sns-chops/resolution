@@ -41,7 +41,7 @@ class WidgetFactory:
             ], style = {"margin-top": "1em"}),
         ])
 
-    def createPlotForUploadedData(self, uploaded_contents, uploaded_filename, uploaded_last_modified, *args):
+    def createPlotForUploadedData(self, uploaded_contents, uploaded_filename, uploaded_last_modified, Ei, *args):
         if uploaded_contents is None: return []
         # load data
         try:
@@ -54,7 +54,9 @@ class WidgetFactory:
         if len(E)>1000:
             return [html.P("Too many data points: %s" % len(E),
                            style={'color': 'red', 'fontSize': 12})]
-        E2, I2 = self.convolve((E,I), *args)
+        mask = E<Ei
+        E1 = E[mask]; I1 = I[mask]
+        E2, I2 = self.convolve((E1,I1), Ei, *args)
         # plot
         curve = {
             'data': [
