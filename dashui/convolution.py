@@ -37,6 +37,9 @@ class WidgetFactory:
                     "The comment line should contain the unit of energy/frequency axis: meV or TeraHz",
                     style=dict(margin="1em 0"),
                 ),
+                html.A("Example 2-col ascii file",
+                       href="https://raw.githubusercontent.com/sns-chops/resolution/4ce4d97a12e9a5620eafb00ad286f9abe24855ef/dashui/data/graphite-DFT-DOS.dat",
+                       target="_blank"),
                 convolution_panel(self.upload_widget_id, self.plot_widget_id), # convolution
             ], style = {"margin-top": "1em"}),
         ])
@@ -47,8 +50,8 @@ class WidgetFactory:
         try:
             E, I = dataarr_from_uploaded_ascii(uploaded_contents).T
         except Exception as e:
-            return [html.P("Failed to load %s as 2-col ascii" % uploaded_filename,
-                           style={'color': 'red', 'fontSize': 12})]
+            # return [html.P("Failed to load %s as 2-col ascii" % uploaded_filename,
+            #               style={'color': 'red', 'fontSize': 12})]
             import traceback as tb
             return [html.Pre(tb.format_exc(), style={'color': 'red', 'fontSize': 14})]
         if len(E)>1000:
@@ -207,5 +210,13 @@ def dataarr_from_uploaded_ascii(uploaded_contents):
     content_type, content_string = uploaded_contents.split(',')
     import base64; decoded = base64.b64decode(content_string)
     from StringIO import StringIO
-    tmp = StringIO(decoded);
-    return np.loadtxt(tmp)
+    # tmp = StringIO(decoded);
+    # return np.loadtxt(tmp)
+    import tempfile
+    f = tempfile.NamedTemporaryFile(delete=False)
+    f.write(decoded)
+    f.close()
+    from mccomponents.sample.phonon import read_dos
+    doshist = read_dos.doshist_fromascii(f.name)
+    os.unlink(f.name)
+    return np.array([doshist.energy, doshist.I]).T
