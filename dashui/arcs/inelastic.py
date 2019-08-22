@@ -49,9 +49,9 @@ def build_interface(app):
         html.Div(id='arcs-pychop-polyfit-matlab-formula'),
     ])
     plot = html.Div([
-        dcc.Graph(
+        dcc.Loading(dcc.Graph(
             id='arcs-res_vs_E',
-        ),
+        )),
     ], style=dict(width="40em", margin='.3em'))
     # download button
     download = html.A(html.Button('Download', id='download-button'), id='arcs-download-link')
