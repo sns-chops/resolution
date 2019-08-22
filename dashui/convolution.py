@@ -38,7 +38,7 @@ class WidgetFactory:
                     style=dict(margin="1em 0"),
                 ),
                 html.A("Example 2-col ascii file",
-                       href="https://raw.githubusercontent.com/sns-chops/resolution/4ce4d97a12e9a5620eafb00ad286f9abe24855ef/dashui/data/graphite-DFT-DOS.dat",
+                       href="https://raw.githubusercontent.com/sns-chops/resolution/1e76dda84c5c4a356ba9806a8728c449fd77fa0f/dashui/data/graphite-DFT-DOS.dat",
                        target="_blank"),
                 convolution_panel(self.upload_widget_id, self.plot_widget_id), # convolution
             ], style = {"margin-top": "1em"}),
