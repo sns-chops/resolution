@@ -57,7 +57,7 @@ class WidgetFactory:
         if len(E)>1000:
             return [html.P("Too many data points: %s" % len(E),
                            style={'color': 'red', 'fontSize': 12})]
-        mask = E<Ei
+        mask = E<Ei*0.9
         E1 = E[mask]; I1 = I[mask]
         E2, I2 = self.convolve((E1,I1), Ei, *args)
         # plot
