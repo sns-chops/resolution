@@ -51,63 +51,58 @@ class WidgetFactory:
         instrument_params = self.instrument_params
         res_function_calculator = self.res_function_calculator
 
-        # configuration
-        @app.callback(
-            dd.Output(self.conv_example_id, component_property='children'),
-            [dd.Input(self.confirm_config_btn_id, 'n_clicks'),],
-            instrument_params
-        )
-        def handle_confirm_instrumentconfig(btn, *args):
-            return self.exampleCurves(*args)
-        
-        # convolution
-        inputs = [
+        # configuration and convolution
+        states = [
             dd.State(upload_widget_id, 'filename'),
             dd.State(upload_widget_id, 'last_modified')
         ] + instrument_params
         @app.callback(
-            dd.Output(plot_widget_id, component_property='children'),
-            [dd.Input(upload_widget_id, 'contents')],
-            inputs)
-        def handle_convolution_upload(uploaded_contents, uploaded_filename, uploaded_last_modified, *args):
-            if uploaded_contents is None: return []
-            # load data
-            try:
-                E, I = dataarr_from_uploaded_ascii(uploaded_contents).T
-            except Exception as e:
-                return [html.P("Failed to load %s as 2-col ascii" % uploaded_filename,
-                               style={'color': 'red', 'fontSize': 12})]
-                import traceback as tb
-                return [html.Pre(tb.format_exc(), style={'color': 'red', 'fontSize': 14})]
-            if len(E)>1000:
-                return [html.P("Too many data points: %s" % len(E),
-                               style={'color': 'red', 'fontSize': 12})]
-            # get resolution function
-            E1, res = res_function_calculator(*args)
-            # fit
-            order = 3
-            a = np.polyfit(E1, res, order)
-            # convolve
-            E2, I2 = convolve(a, E, I)
-            # plot
-            curve = {
-                'data': [
-                    {'x': E, 'y': I, 'type': 'point', 'name': 'Without resolution'},
-                    {'x': E2, 'y': I2, 'type': 'point', 'name': 'Convolved'},
-                ],
-                'layout': {
-                    'title': 'I(E) curve',
-                    'xaxis':{
-                        'title':'E (meV)'
-                    },
-                    'yaxis':{
-                        'title':'Intensity (arb. unit)'
-                    }
-                }
-            }
-            return [dcc.Graph(figure=curve)]
+            [dd.Output(self.conv_example_id, component_property='children'),
+             dd.Output(plot_widget_id, component_property='children'),
+             ],
+            [dd.Input(self.confirm_config_btn_id, 'n_clicks'),
+             dd.Input(upload_widget_id, 'contents')],
+            states,
+        )
+        def handle_confirm_instrumentconfig(btn, uploaded_contents, uploaded_filename, uploaded_last_modified, *args):
+            return [
+                self.exampleCurves(*args),
+                self.createPlotForUploadedData(uploaded_contents, uploaded_filename, uploaded_last_modified, *args),
+            ]
         return
 
+    def createPlotForUploadedData(self, uploaded_contents, uploaded_filename, uploaded_last_modified, *args):
+        if uploaded_contents is None: return []
+        # load data
+        try:
+            E, I = dataarr_from_uploaded_ascii(uploaded_contents).T
+        except Exception as e:
+            return [html.P("Failed to load %s as 2-col ascii" % uploaded_filename,
+                           style={'color': 'red', 'fontSize': 12})]
+            import traceback as tb
+            return [html.Pre(tb.format_exc(), style={'color': 'red', 'fontSize': 14})]
+        if len(E)>1000:
+            return [html.P("Too many data points: %s" % len(E),
+                           style={'color': 'red', 'fontSize': 12})]
+        E2, I2 = self.convolve((E,I), *args)
+        # plot
+        curve = {
+            'data': [
+                {'x': E, 'y': I, 'type': 'point', 'name': 'Without resolution'},
+                {'x': E2, 'y': I2, 'type': 'point', 'name': 'Convolved'},
+            ],
+            'layout': {
+                'title': 'I(E) curve',
+                'xaxis':{
+                    'title':'E (meV)'
+                },
+                'yaxis':{
+                    'title':'Intensity (arb. unit)'
+                }
+            }
+        }
+        return [dcc.Graph(figure=curve)]
+    
     def exampleCurves(self, Ei, *args):
         print Ei, args
         E = np.linspace(-.5*Ei, Ei*.95, 100)
