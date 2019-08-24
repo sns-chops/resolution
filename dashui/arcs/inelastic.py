@@ -77,13 +77,19 @@ def build_interface(app):
 
         #
         dcc.Tabs(id="arcs-inel-tabs", children=[
-            dcc.Tab(label='Summary', children=[summary], style=tab_style),
-            dcc.Tab(label='Plot', children=[plotcontainer], style=tab_style),
-            dcc.Tab(label='Convolution', children=[conv], style=tab_style),
-        ]),
+            dcc.Tab(label='Summary', children=[summary], style=tab_style, value='summary'),
+            dcc.Tab(label='Plot', children=[plotcontainer], style=tab_style, value='plot'),
+            dcc.Tab(label='Convolution', children=[conv], style=tab_style, value='convolution'),
+        ], value='summary'),
     ])
 
 
+class NoTransmission(Exception):
+    def __init__(self, s=None):
+        s = s or "No transmission"
+        Exception.__init__(self, s)
+        return
+    
 def build_callbacks(app):
     @app.callback(
         [dd.Output(component_id='arcs-res_vs_E', component_property='figure'),
@@ -100,6 +106,7 @@ def build_callbacks(app):
         [dd.Input('arcs-calculate-button', 'n_clicks'),
          dd.Input(conv_widget_factory.upload_widget_id, 'contents'),
          dd.Input(conv_widget_factory.apply_excitations_button_id, 'n_clicks'),
+         dd.Input('arcs-inel-tabs', 'value'),
         ],
         [dd.State(conv_widget_factory.upload_widget_id, 'filename'),
          dd.State(conv_widget_factory.upload_widget_id, 'last_modified'),
@@ -113,63 +120,34 @@ def build_callbacks(app):
             #inputs
             calc_btn, uploaded_contents, apply_excitation_btn,
             # states
+            output_tab,
             uploaded_filename, uploaded_last_modified,
             excitation_input_text,
             chopper_select, chopper_freq, Ei):
-        try:
-            E, res = get_data(Ei, chopper_select, chopper_freq)
-            failed = False
-        except Exception as e:
-            failed = True
-            status = str(e)
-            curve = {}
-            downloadlink = ''
-            summary = ''
-            python_formula = ''
-            matlab_formula = ''
-        else:
-            order = 3
-            yfit, python_formula, matlab_formula = wu.polyfit(E, res, order)
-            curve = {
-                'data': [
-                    {'x': E, 'y': res, 'type': 'point', 'name': 'resolution'},
-                    {'x': E, 'y': yfit, 'type': 'lines', 'name': 'resolution polynomial fit'},
-                ],
-                'layout': {
-                    'title': 'Energy dependence of resolution (PyChop)',
-                    'xaxis':{
-                        'title':'E (meV)'
-                    },
-                    'yaxis':{
-                        'title':'FWHM (meV)'
-                    }
-                }
-            }
-            if (res!=res).any():
-                status = "No transmission"
-                downloadlink = ''
-                summary = ''
+        print output_tab
+        # summary and plot
+        failed = False
+        status = ""
+        curve = {}
+        downloadlink = ''
+        summary = ''
+        python_formula = ''
+        matlab_formula = ''
+        example_panel_excitation_placeholder = ''
+        excitation_input_status = ''
+        example_panel_plots = ''
+        convplot = ''
+        if output_tab in ['summary', 'plot']:
+            try:
+                summary, python_formula, matlab_formula, curve, downloadlink = update_summary_and_plot(
+                    Ei, chopper_select, chopper_freq)
+            except Exception as e:
+                failed = True
+                status = str(e)
             else:
-                status = ''
-                downloadlink = '/download/arcs?chopper_select=%s&chopper_freq=%s&Ei=%s' % (
-                    chopper_select, chopper_freq, Ei)
-                elastic_res,flux = arcsmodel.elastic_res_flux(chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
-                data = exp.data[chopper_select]
-                indexes = (np.where(np.isclose(data.vdata.Energy, Ei) * np.isclose(data.chopper_freqs, chopper_freq)))[0]
-                if len(indexes):
-                    index = indexes[0]
-                    # print(data.FWHM[index])
-                    flux = '%.3g (PyChop); %.3g (Experiment)' % (flux, data.intensity[index])
-                else:
-                    flux = '%.3g (PyChop)' % flux
-                summary = summary_format_str.format(
-                    el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei, flux=flux)
-        if failed:
-            example_panel_excitation_placeholder = ''
-            excitation_input_status = ''
-            example_panel_plots = ''
-            convplot = ''
+                pass
         else:
+            # convolution
             example_panel_excitation_placeholder, excitation_input_status, example_panel_plots \
                 = conv_widget_factory.updateExamplePanel(
                     excitation_input_text, Ei, chopper_select, chopper_freq)
@@ -201,6 +179,47 @@ def build_callbacks(app):
     return
 
 
+def update_summary_and_plot(Ei, chopper_select, chopper_freq):
+    E, res = get_data(Ei, chopper_select, chopper_freq)
+    order = 3
+    yfit, python_formula, matlab_formula = wu.polyfit(E, res, order)
+    curve = {
+        'data': [
+            {'x': E, 'y': res, 'type': 'point', 'name': 'resolution'},
+            {'x': E, 'y': yfit, 'type': 'lines', 'name': 'resolution polynomial fit'},
+        ],
+        'layout': {
+            'title': 'Energy dependence of resolution (PyChop)',
+            'xaxis':{
+                'title':'E (meV)'
+            },
+            'yaxis':{
+                'title':'FWHM (meV)'
+            }
+        }
+    }
+    if (res!=res).any():
+        raise NoTransmission()
+    summary, downloadlink = update_summary_and_downloadlink(Ei, chopper_select, chopper_freq)
+    return  summary, python_formula, matlab_formula, curve, downloadlink
+        
+    
+def update_summary_and_downloadlink(Ei, chopper_select, chopper_freq):
+    downloadlink = '/download/arcs?chopper_select=%s&chopper_freq=%s&Ei=%s' % (
+        chopper_select, chopper_freq, Ei)
+    elastic_res,flux = arcsmodel.elastic_res_flux(chopper=chopper_select, chopper_freq=chopper_freq, Ei=Ei)
+    data = exp.data[chopper_select]
+    indexes = (np.where(np.isclose(data.vdata.Energy, Ei) * np.isclose(data.chopper_freqs, chopper_freq)))[0]
+    if len(indexes):
+        index = indexes[0]
+        # print(data.FWHM[index])
+        flux = '%.3g (PyChop); %.3g (Experiment)' % (flux, data.intensity[index])
+    else:
+        flux = '%.3g (PyChop)' % flux
+    summary = summary_format_str.format(
+        el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei, flux=flux)
+    return summary, downloadlink
+    
 def dataarr_from_uploaded_ascii(uploaded_contents):
     content_type, content_string = uploaded_contents.split(',')
     import base64; decoded = base64.b64decode(content_string)
