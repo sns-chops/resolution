@@ -90,6 +90,7 @@ def build_callbacks(app):
          dd.Output('arcs-pychop-polyfit-python-formula', 'children'),
          dd.Output('arcs-pychop-polyfit-matlab-formula', 'children'),
          dd.Output(conv_widget_factory.excitation_input_id, 'placeholder'),
+         dd.Output(conv_widget_factory.excitation_input_status_id, 'children'),
          dd.Output(conv_widget_factory.conv_example_plots_id, component_property='children'),
          dd.Output(conv_widget_factory.plot_widget_id, component_property='children'),
         ],
@@ -162,11 +163,13 @@ def build_callbacks(app):
                     el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei, flux=flux)
         if failed:
             example_panel_excitation_placeholder = ''
+            excitation_input_status = ''
             example_panel_plots = ''
             convplot = ''
         else:
-            example_panel_excitation_placeholder, example_panel_plots = conv_widget_factory.updateExamplePanel(
-                excitation_input_text, Ei, chopper_select, chopper_freq)
+            example_panel_excitation_placeholder, excitation_input_status, example_panel_plots \
+                = conv_widget_factory.updateExamplePanel(
+                    excitation_input_text, Ei, chopper_select, chopper_freq)
             convplot = conv_widget_factory.createPlotForUploadedData(
                 uploaded_contents, uploaded_filename, uploaded_last_modified,
                 Ei, chopper_select, chopper_freq,
@@ -175,7 +178,7 @@ def build_callbacks(app):
         return (
             curve, status, downloadlink, summary, python_formula, matlab_formula,
             # convolution related
-            example_panel_excitation_placeholder, example_panel_plots,
+            example_panel_excitation_placeholder, excitation_input_status, example_panel_plots,
             convplot
         )
             

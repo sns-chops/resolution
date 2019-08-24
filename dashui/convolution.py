@@ -92,13 +92,11 @@ class WidgetFactory:
     def createExamplesSkeleton(self, app):
         "example section with delta function. contains textarea for excitations and plots"
         plots = html.Div(id=self.conv_example_plots_id)
-        example_panel = dcc.Loading(
-            html.Div(
-                id = self.conv_example_id,
-                children = html.Div([
-                    self.createExcitationPanelSkeleton(),
-                    plots])
-            )
+        example_panel = html.Div(
+            id = self.conv_example_id,
+            children = html.Div([
+                self.createExcitationPanelSkeleton(),
+                dcc.Loading(plots)])
         )
         return html.Details([
             html.Summary('Expand for delta function example'),
@@ -134,22 +132,31 @@ class WidgetFactory:
         * Ei
         * *args: additional args for convolution
 
-        Output: the textarea value, the plots
+        Output: the textarea value, textarea status, the plots
         """
+        error = False
+        status = ""
         if not excitations_text.strip():
             excitations = np.linspace(-.45*Ei, Ei*.9, 8), np.ones(8)
-            header = '# current configuration. type to change\n'
+            header = '# current configuration. type to change\nenergy(meV) intensity\n'
             excitations_text = header + '\n'.join(['%8.3f\t%8.3f' % (e,I) for e, I in zip(*excitations)])
         else:
-            excitations = excitations_text.strip().splitlines()
-            excitations = [map(float, e.split()) for e in excitations if e.strip()]
-            excitations = np.array(excitations).T
-            assert excitations.shape[0] == 2, "Has to be 2 col ascii"
-            excitations = excitations[0], excitations[1]
-        E, I = IE_from_excitations(excitations, -.5*Ei, Ei*.95, 100)
-        cE, cI = self.convolve((E,I), Ei, *args)
-        plots = html.Div([IEplot((E,I), "Original"), IEplot((cE,cI), "Convolved")])
-        return excitations_text, plots        
+            try:
+                excitations = excitations_text.strip().splitlines()
+                excitations = [map(float, e.split()) for e in excitations if e.strip()]
+                excitations = np.array(excitations).T
+                assert excitations.shape[0] == 2, "Has to be 2 col ascii"
+                excitations = excitations[0], excitations[1]
+            except Exception as e:
+                status = str(e)
+                error = True
+        if not error:
+            E, I = IE_from_excitations(excitations, -.5*Ei, Ei*.95, 100)
+            cE, cI = self.convolve((E,I), Ei, *args)
+            plots = html.Div([IEplot((E,I), "Original"), IEplot((cE,cI), "Convolved")])
+        else:
+            plots = ''
+        return excitations_text, status, plots        
 
     # utils
     def convolve(self, IE, *args):
