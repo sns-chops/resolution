@@ -65,10 +65,13 @@ def build_interface(app):
     return html.Div(children=[
 
         # input fields
-        config_widget,
-
-        # calculate button
-        html.Div([html.Button('Calculate', id='arcs-calculate-button')], style=dict(padding='1em')),
+        html.Div([
+            # settings
+            html.Div([config_widget], style={'display': 'inline-flex'}),
+            # calculate button
+            html.Div([html.Button('Calculate', id='arcs-calculate-button')],
+                     style=dict(padding='1em 3em', display='inline-flex')),
+        ], style={'display': 'inline-flex'}),
         # status
         html.Div(id='arcs-status', children='', style=dict(padding='1em', color='red')),
 
