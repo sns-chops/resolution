@@ -59,9 +59,6 @@ def build_interface(app):
     plotcontainer = html.Div([formula, plot, download], style=tab_style)
     #
     conv = conv_widget_factory.createInterface(app)
-    conv.style = tab_style.copy()
-    conv.style['width'] = '60em'
-
     return html.Div(children=[
 
         # input fields

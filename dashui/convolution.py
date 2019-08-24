@@ -35,9 +35,25 @@ class WidgetFactory:
         self.excitation_input_status_id = '%s-excitation-input-status' % self.instrument
         self.conv_example_plots_id = '%s-conv-example-plots' % self.instrument
         self.apply_excitations_button_id = '%s-apply-excitations' % self.instrument
+        self.tabs_id = '%s-convolution-tabs' % self.instrument
+        #
+        self.tab_style = dict(border="1px solid lightgray", padding='1em')
         return
 
     def createInterface(self, app):
+        return html.Div([
+            dcc.Tabs(id=self.tabs_id, children=[
+                dcc.Tab(label='I(E)', children=[self.createIEInterface(app)], value='I(E)'),
+                dcc.Tab(label='I(Q,E)', children=[self.createIQEInterface(app)], value='I(Q,E)'),
+            ], value='I(E)', vertical=True)
+        ], style=dict(border="1px solid lightgray", padding='1em'))
+
+    def createIQEInterface(self, app):
+        return html.Div("I(Q,E)")
+
+    def createIEInterface(self, app):
+        style = self.tab_style.copy()
+        style['width'] = "60em"
         return html.Div([
             html.Div([
                 html.H5('Energy spectrum (e.g., phonon DOS)'),
@@ -51,7 +67,7 @@ class WidgetFactory:
                        href="https://raw.githubusercontent.com/sns-chops/resolution/1e76dda84c5c4a356ba9806a8728c449fd77fa0f/dashui/data/graphite-DFT-DOS.dat",
                        target="_blank"),
                 convolution_panel(self.upload_widget_id, self.plot_widget_id), # convolution
-            ], style = {"margin-top": "1em"}),
+            ], style = style)
         ])
 
     def createPlotForUploadedData(self, uploaded_contents, uploaded_filename, uploaded_last_modified, Ei, *args):
