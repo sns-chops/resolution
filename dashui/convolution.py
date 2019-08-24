@@ -78,19 +78,17 @@ class WidgetFactory:
         }
         return [dcc.Graph(figure=curve, style={'height': '25em', 'width': '50em'})]
     
-    def exampleCurves(self, Ei, *args):
-        print Ei, args
-        E = np.linspace(-.5*Ei, Ei*.95, 100)
-        I = np.zeros(E.size)
-        indexes = range(5, 100, 12)
-        for ind in indexes: I[ind] = 1.
+    def createExamplePanel(self, Ei, *args):
+        print "createExamplePanel"
+        excitations = np.linspace(-.45*Ei, Ei*.9, 8), np.ones(8)
+        E, I = IE_from_excitations(excitations, -.5*Ei, Ei*.95, 100)
         cE, cI = self.convolve((E,I), Ei, *args)
         return html.Div([IEplot((E,I), "Original"), IEplot((cE,cI), "Convolved")])
 
     def createExamplesSkeleton(self, app):
         plots = dcc.Loading(html.Div(id = self.conv_example_id))
         return html.Details([
-            html.Summary('Example: delta functions'),
+            html.Summary('Expand for delta function example'),
             plots,
         ])                
 
@@ -107,6 +105,26 @@ class WidgetFactory:
         E2, I2 = convolve(a, E, I)
         return E2, I2
     
+
+def IE_from_excitations(excitations, Emin, Emax, N):
+    """Create I(E) curve from a bunch of excitations
+
+    Inputs
+    * Emin, Emax, N: define energy axis of output
+    * excitations is a tuple of Es and Is. excitation is assumed to be with no intrinsic width
+      - Es: a list of energies of excitations
+      - Is: a list of intensities of excitations
+
+    Output: (E,I)
+    """
+    E = np.linspace(Emin,Emax,N)
+    dE = E[1]-E[0]
+    I = np.zeros(E.size)
+    # set delta functions
+    for E1,I1 in zip(*excitations):
+        condition = np.abs(E-E1)<0.50000001*dE
+        I[condition] = I1
+    return E,I
 
 
 def IEplot(IE, title, display="inline-block"):

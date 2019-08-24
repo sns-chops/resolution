@@ -153,10 +153,10 @@ def build_callbacks(app):
                 summary = summary_format_str.format(
                     el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei, flux=flux)
         if failed:
-            examplecurves = ''
+            example_panel = ''
             convplot = ''
         else:
-            examplecurves = conv_widget_factory.exampleCurves(Ei, chopper_select, chopper_freq),
+            example_panel = conv_widget_factory.createExamplePanel(Ei, chopper_select, chopper_freq),
             convplot = conv_widget_factory.createPlotForUploadedData(
                 uploaded_contents, uploaded_filename, uploaded_last_modified,
                 Ei, chopper_select, chopper_freq,
@@ -164,7 +164,7 @@ def build_callbacks(app):
             
         return (
             curve, status, downloadlink, summary, python_formula, matlab_formula,
-            examplecurves, convplot,
+            example_panel, convplot,
         )
             
 
