@@ -107,7 +107,7 @@ class WidgetFactory:
         instrument = self.instrument
         inputarea = dcc.Textarea(
             id = self.excitation_input_id, value="",
-            style={'width': '20em', 'height': '10em', 'margin-top': "1em"}
+            style={'width': '30em', 'height': '10em', 'margin-top': "1em"}
         )
         inputarea_container = html.Div([inputarea], style={'display': 'inline-flex'})
         status = html.Div(
@@ -138,7 +138,7 @@ class WidgetFactory:
         status = ""
         if not excitations_text.strip():
             excitations = np.linspace(-.45*Ei, Ei*.9, 8), np.ones(8)
-            header = '# current configuration. type to change\nenergy(meV) intensity\n'
+            header = '# current configuration. type to change\n# COL1: energy(meV)\tCOL2: intensity\n'
             excitations_text = header + '\n'.join(['%8.3f\t%8.3f' % (e,I) for e, I in zip(*excitations)])
         else:
             try:
