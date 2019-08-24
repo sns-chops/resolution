@@ -78,19 +78,19 @@ class WidgetFactory:
         }
         return [dcc.Graph(figure=curve, style={'height': '25em', 'width': '50em'})]
     
+    def createExamplesSkeleton(self, app):
+        example_panel = dcc.Loading(html.Div(id = self.conv_example_id))
+        return html.Details([
+            html.Summary('Expand for delta function example'),
+            example_panel,
+        ])                
+
     def createExamplePanel(self, Ei, *args):
-        print "createExamplePanel"
         excitations = np.linspace(-.45*Ei, Ei*.9, 8), np.ones(8)
         E, I = IE_from_excitations(excitations, -.5*Ei, Ei*.95, 100)
         cE, cI = self.convolve((E,I), Ei, *args)
-        return html.Div([IEplot((E,I), "Original"), IEplot((cE,cI), "Convolved")])
-
-    def createExamplesSkeleton(self, app):
-        plots = dcc.Loading(html.Div(id = self.conv_example_id))
-        return html.Details([
-            html.Summary('Expand for delta function example'),
-            plots,
-        ])                
+        plots = html.Div([IEplot((E,I), "Original"), IEplot((cE,cI), "Convolved")])
+        return html.Div([excitationPanel(excitations), plots])
 
     def convolve(self, IE, *args):
         # get resolution function
@@ -104,7 +104,18 @@ class WidgetFactory:
         E, I = IE
         E2, I2 = convolve(a, E, I)
         return E2, I2
+
     
+def excitationPanel(excitations):
+    text = '\n'.join(['%8.3f\t%8.3f' % (e,I) for e, I in zip(*excitations)])
+    inputarea = dcc.Textarea(
+        value=text,
+        style={'width': '20em', 'height': '10em', 'margin-top': "1em"}
+    )  
+    return html.Details([
+        html.Summary('Excitations'),
+        html.Div([inputarea]),
+    ], style={'margin': '1em'})
 
 def IE_from_excitations(excitations, Emin, Emax, N):
     """Create I(E) curve from a bunch of excitations
