@@ -121,7 +121,7 @@ class WidgetFactory:
             style=dict(display='inline-flex', margin ='1em')
         )
         return html.Details([
-            html.Summary('Excitations'),
+            html.Summary('Edit excitations'),
             html.Div(children=[inputarea_container, right]),
         ], style={'margin': '1em'})
 
