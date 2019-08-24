@@ -89,21 +89,29 @@ def build_callbacks(app):
          dd.Output('arcs-summary', 'children'),
          dd.Output('arcs-pychop-polyfit-python-formula', 'children'),
          dd.Output('arcs-pychop-polyfit-matlab-formula', 'children'),
-         dd.Output(conv_widget_factory.conv_example_id, component_property='children'),
+         dd.Output(conv_widget_factory.excitation_input_id, 'placeholder'),
+         dd.Output(conv_widget_factory.conv_example_plots_id, component_property='children'),
          dd.Output(conv_widget_factory.plot_widget_id, component_property='children'),
         ],
         [dd.Input('arcs-calculate-button', 'n_clicks'),
          dd.Input(conv_widget_factory.upload_widget_id, 'contents'),
+         dd.Input(conv_widget_factory.apply_excitations_button_id, 'n_clicks'),
         ],
         [dd.State(conv_widget_factory.upload_widget_id, 'filename'),
          dd.State(conv_widget_factory.upload_widget_id, 'last_modified'),
+         dd.State(conv_widget_factory.excitation_input_id, 'value'),
          dd.State(component_id='arcs_chopper_select', component_property='value'),
          dd.State(component_id='arcs_chopper_freq', component_property='value'),
          dd.State(component_id='arcs_Ei_input', component_property='value'),
         ]
         )
-    def update_output_div(calc_btn, uploaded_contents, uploaded_filename, uploaded_last_modified,
-                          chopper_select, chopper_freq, Ei):
+    def update_output_div(
+            #inputs
+            calc_btn, uploaded_contents, apply_excitation_btn,
+            # states
+            uploaded_filename, uploaded_last_modified,
+            excitation_input_text,
+            chopper_select, chopper_freq, Ei):
         try:
             E, res = get_data(Ei, chopper_select, chopper_freq)
             failed = False
@@ -153,10 +161,12 @@ def build_callbacks(app):
                 summary = summary_format_str.format(
                     el_res=elastic_res, el_res_percentage=elastic_res/Ei*100., Ei=Ei, flux=flux)
         if failed:
-            example_panel = ''
+            example_panel_excitation_placeholder = ''
+            example_panel_plots = ''
             convplot = ''
         else:
-            example_panel = conv_widget_factory.createExamplePanel(Ei, chopper_select, chopper_freq),
+            example_panel_excitation_placeholder, example_panel_plots = conv_widget_factory.updateExamplePanel(
+                excitation_input_text, Ei, chopper_select, chopper_freq)
             convplot = conv_widget_factory.createPlotForUploadedData(
                 uploaded_contents, uploaded_filename, uploaded_last_modified,
                 Ei, chopper_select, chopper_freq,
@@ -164,7 +174,9 @@ def build_callbacks(app):
             
         return (
             curve, status, downloadlink, summary, python_formula, matlab_formula,
-            example_panel, convplot,
+            # convolution related
+            example_panel_excitation_placeholder, example_panel_plots,
+            convplot
         )
             
 
