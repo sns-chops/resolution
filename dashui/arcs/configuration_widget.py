@@ -40,8 +40,8 @@ def create(id_prefix=''):
     # input fields
     widget = html.Table([
         html.Tr([
-            html.Td(Ei_widget_elements),
-            html.Td(FC_widget_elements, style=dict(width="14em")),
+            html.Td(Ei_widget_elements, style=dict(width="14em", border="none")),
+            html.Td(FC_widget_elements, style=dict(width="14em", border="none")),
         ])
     ])
 

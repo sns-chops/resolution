@@ -1,0 +1,13 @@
+button {
+    color: white;
+    background-color: gray;
+    font-size: 1.1em;
+}
+
+button:hover {
+    color: lightblue;
+}
+
+button:focus {
+    color: white;
+}

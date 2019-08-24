@@ -18,6 +18,12 @@ def create(instrument='arcs', instrument_params=[], res_function_calculator=None
 
 class WidgetFactory:
 
+    """provide methods to
+
+    * create UI skeleton
+    * update UI elements (to be used in callback functions)
+    """
+
     def __init__(self, instrument='arcs', instrument_params=[], res_function_calculator=None):
         self.instrument = instrument
         self.instrument_params = instrument_params
@@ -25,6 +31,10 @@ class WidgetFactory:
         self.upload_widget_id = '%s-convolution-upload' % instrument
         self.plot_widget_id = '%s-convolution-plot' % instrument
         self.conv_example_id = "%s-conv-example" % self.instrument
+        self.excitation_input_id = "%s-excitation-input" % self.instrument
+        self.excitation_input_status_id = '%s-excitation-input-status' % self.instrument
+        self.conv_example_plots_id = '%s-conv-example-plots' % self.instrument
+        self.apply_excitations_button_id = '%s-apply-excitations' % self.instrument
         return
 
     def createInterface(self, app):
@@ -78,22 +88,77 @@ class WidgetFactory:
         }
         return [dcc.Graph(figure=curve, style={'height': '25em', 'width': '50em'})]
     
-    def exampleCurves(self, Ei, *args):
-        print Ei, args
-        E = np.linspace(-.5*Ei, Ei*.95, 100)
-        I = np.zeros(E.size)
-        indexes = range(5, 100, 12)
-        for ind in indexes: I[ind] = 1.
-        cE, cI = self.convolve((E,I), Ei, *args)
-        return html.Div([IEplot((E,I), "Original"), IEplot((cE,cI), "Convolved")])
-
+    # panel for excitations and plots
     def createExamplesSkeleton(self, app):
-        plots = dcc.Loading(html.Div(id = self.conv_example_id))
+        "example section with delta function. contains textarea for excitations and plots"
+        plots = html.Div(id=self.conv_example_plots_id)
+        example_panel = html.Div(
+            id = self.conv_example_id,
+            children = html.Div([
+                self.createExcitationPanelSkeleton(),
+                dcc.Loading(plots)])
+        )
         return html.Details([
-            html.Summary('Example: delta functions'),
-            plots,
-        ])                
+            html.Summary('Expand for delta function example'),
+            example_panel,
+        ])
 
+    def createExcitationPanelSkeleton(self):
+        instrument = self.instrument
+        inputarea = dcc.Textarea(
+            id = self.excitation_input_id, value="",
+            style={'width': '30em', 'height': '10em', 'margin-top': "1em"}
+        )
+        inputarea_container = html.Div([inputarea], style={'display': 'inline-flex'})
+        status = html.Div(
+            id=self.excitation_input_status_id,
+            children=[],
+            style=dict(padding='1em', color='red')
+        )
+        apply_button = html.Button('Apply', id = self.apply_excitations_button_id)
+        right = html.Div(
+            children = [apply_button, status],
+            style=dict(display='inline-flex', margin ='1em')
+        )
+        return html.Details([
+            html.Summary('Excitations'),
+            html.Div(children=[inputarea_container, right]),
+        ], style={'margin': '1em'})
+
+    def updateExamplePanel(self, excitations_text, Ei, *args):
+        """update the example panel. this includes the text area of excitations, and the plots
+
+        * excitations_text: textarea text for excitations
+        * Ei
+        * *args: additional args for convolution
+
+        Output: the textarea value, textarea status, the plots
+        """
+        error = False
+        status = ""
+        if not excitations_text.strip():
+            excitations = np.linspace(-.45*Ei, Ei*.9, 8), np.ones(8)
+            header = '# current configuration. type to change\n# COL1: energy(meV)\tCOL2: intensity\n'
+            excitations_text = header + '\n'.join(['%8.3f\t%8.3f' % (e,I) for e, I in zip(*excitations)])
+        else:
+            try:
+                excitations = excitations_text.strip().splitlines()
+                excitations = [map(float, e.split()) for e in excitations if e.strip()]
+                excitations = np.array(excitations).T
+                assert excitations.shape[0] == 2, "Has to be 2 col ascii"
+                excitations = excitations[0], excitations[1]
+            except Exception as e:
+                status = str(e)
+                error = True
+        if not error:
+            E, I = IE_from_excitations(excitations, -.5*Ei, Ei*.95, 100)
+            cE, cI = self.convolve((E,I), Ei, *args)
+            plots = html.Div([IEplot((E,I), "Original"), IEplot((cE,cI), "Convolved")])
+        else:
+            plots = ''
+        return excitations_text, status, plots        
+
+    # utils
     def convolve(self, IE, *args):
         # get resolution function
         E1, res = self.res_function_calculator(*args)
@@ -106,7 +171,27 @@ class WidgetFactory:
         E, I = IE
         E2, I2 = convolve(a, E, I)
         return E2, I2
+
     
+def IE_from_excitations(excitations, Emin, Emax, N):
+    """Create I(E) curve from a bunch of excitations
+
+    Inputs
+    * Emin, Emax, N: define energy axis of output
+    * excitations is a tuple of Es and Is. excitation is assumed to be with no intrinsic width
+      - Es: a list of energies of excitations
+      - Is: a list of intensities of excitations
+
+    Output: (E,I)
+    """
+    E = np.linspace(Emin,Emax,N)
+    dE = E[1]-E[0]
+    I = np.zeros(E.size)
+    # set delta functions
+    for E1,I1 in zip(*excitations):
+        condition = np.abs(E-E1)<0.50000001*dE
+        I[condition] = I1
+    return E,I
 
 
 def IEplot(IE, title, display="inline-block"):
