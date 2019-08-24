@@ -100,13 +100,16 @@ def build_callbacks(app):
          dd.Output(conv_widget_factory.conv_example_plots_id, component_property='children'),
          dd.Output(conv_widget_factory.plot_widget_id, component_property='children'),
         ],
-        [dd.Input('arcs-calculate-button', 'n_clicks'),
+        [dd.Input('arcs-inel-tabs', 'value'),
+         dd.Input('arcs-calculate-button', 'n_clicks'),
          dd.Input(conv_widget_factory.upload_widget_id, 'contents'),
          dd.Input(conv_widget_factory.apply_excitations_button_id, 'n_clicks'),
-         dd.Input('arcs-inel-tabs', 'value'),
+         dd.Input(conv_widget_factory.phonopy_upload_widget_id, 'contents'),
         ],
         [dd.State(conv_widget_factory.upload_widget_id, 'filename'),
          dd.State(conv_widget_factory.upload_widget_id, 'last_modified'),
+         dd.State(conv_widget_factory.phonopy_upload_widget_id, 'filename'),
+         dd.State(conv_widget_factory.phonopy_upload_widget_id, 'last_modified'),
          dd.State(conv_widget_factory.excitation_input_id, 'value'),
          dd.State(component_id='arcs_chopper_select', component_property='value'),
          dd.State(component_id='arcs_chopper_freq', component_property='value'),
@@ -115,14 +118,14 @@ def build_callbacks(app):
         )
     def update_output_div(
             #inputs
-            calc_btn, uploaded_contents, apply_excitation_btn,
-            # states
             output_tab,
+            calc_btn, uploaded_contents, apply_excitation_btn,
+            phonopy_uploaded_contents,
+            # states
             uploaded_filename, uploaded_last_modified,
+            phonopy_uploaded_filename, phonopy_uploaded_last_modified,
             excitation_input_text,
             chopper_select, chopper_freq, Ei):
-        print output_tab
-        # summary and plot
         failed = False
         status = ""
         curve = {}
@@ -135,6 +138,7 @@ def build_callbacks(app):
         example_panel_plots = ''
         convplot = ''
         if output_tab in ['summary', 'plot']:
+            # summary and plot
             try:
                 summary, python_formula, matlab_formula, curve, downloadlink = update_summary_and_plot(
                     Ei, chopper_select, chopper_freq)
@@ -152,14 +156,14 @@ def build_callbacks(app):
                 uploaded_contents, uploaded_filename, uploaded_last_modified,
                 Ei, chopper_select, chopper_freq,
             )
-            
-        return (
+            conv_widget_factory.updateSQEConvolution(phonopy_uploaded_contents, phonopy_uploaded_filename)
+        ret = (
             curve, status, downloadlink, summary, python_formula, matlab_formula,
             # convolution related
             example_panel_excitation_placeholder, excitation_input_status, example_panel_plots,
             convplot
         )
-            
+        return ret
 
     @app.server.route('/download/arcs')
     def download_csv():

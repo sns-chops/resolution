@@ -28,6 +28,9 @@ class WidgetFactory:
         self.instrument = instrument
         self.instrument_params = instrument_params
         self.res_function_calculator = res_function_calculator
+        # IDs
+        self.tabs_id = '%s-convolution-tabs' % self.instrument
+        # I(E)
         self.upload_widget_id = '%s-convolution-upload' % instrument
         self.plot_widget_id = '%s-convolution-plot' % instrument
         self.conv_example_id = "%s-conv-example" % self.instrument
@@ -35,8 +38,10 @@ class WidgetFactory:
         self.excitation_input_status_id = '%s-excitation-input-status' % self.instrument
         self.conv_example_plots_id = '%s-conv-example-plots' % self.instrument
         self.apply_excitations_button_id = '%s-apply-excitations' % self.instrument
-        self.tabs_id = '%s-convolution-tabs' % self.instrument
-        #
+        # I(Q,E)
+        self.phonopy_upload_widget_id = '%s-convolution-phonopy-upload' % instrument
+        self.IQE_plot_widget_Id = '%s-convolution-IQE-plot' % instrument
+        # 
         self.tab_style = dict(border="1px solid lightgray", padding='1em')
         return
 
@@ -49,7 +54,16 @@ class WidgetFactory:
         ], style=dict(border="1px solid lightgray", padding='1em'))
 
     def createIQEInterface(self, app):
-        return html.Div("I(Q,E)")
+        style = self.tab_style.copy()
+        return html.Div([
+            html.Div([
+                html.H5('Powder I(Q,E) spectrum'),
+                html.A("Example phonopy input file",
+                       href="https://raw.githubusercontent.com/sns-chops/resolution/1e76dda84c5c4a356ba9806a8728c449fd77fa0f/dashui/data/graphite-DFT-DOS.dat",
+                       target="_blank"),
+                convolution_panel(self.phonopy_upload_widget_id, self.IQE_plot_widget_Id), 
+            ], style = style)
+        ])
 
     def createIEInterface(self, app):
         style = self.tab_style.copy()
@@ -172,7 +186,12 @@ class WidgetFactory:
             plots = html.Div([IEplot((E,I), "Original"), IEplot((cE,cI), "Convolved")])
         else:
             plots = ''
-        return excitations_text, status, plots        
+        return excitations_text, status, plots
+
+    def updateSQEConvolution(self, uploaded_contents, uploaded_filename):
+        if uploaded_contents is None: return
+        zipfile = binfile_from_uploaded(uploaded_contents, uploaded_filename)
+        return
 
     # utils
     def convolve(self, IE, *args):
@@ -275,6 +294,45 @@ def convolve(a, E, I):
     '''a: polynomial coeffs
     E,I: input spectrum
     '''
+    E_new, FWHM_f, psf = makePSF(a, E)
+    ys = []
+    FWHM0 = FWHM_f(E[0])
+    FWHM1 = FWHM_f(E[-1])
+    smaller_range = (E_new>E[0]-FWHM0) * (E_new<E[-1]+FWHM1)
+    I_new = np.interp(E_new, E, I)
+    I_new[E_new<E[0]] = 0; I_new[E_new>E[-1]] = 0
+    # convolve
+    y = np.dot(psf, I_new)
+    return E_new[smaller_range], y[smaller_range]
+
+
+def convolve_spectra(a, E, Is):
+    '''a: polynomial coeffs
+    E: input energy axis
+    Is: a list of spectra
+    '''
+    E_new, FWHM_f, psf = makePSF(a, E)
+    ys = []
+    FWHM0 = FWHM_f(E[0])
+    FWHM1 = FWHM_f(E[-1])
+    smaller_range = (E_new>E[0]-FWHM0) * (E_new<E[-1]+FWHM1)
+    for i, I in enumerate(Is):
+        I_new = np.interp(E_new, E, I)
+        I_new[E_new<E[0]] = 0; I_new[E_new>E[-1]] = 0
+        # convolve
+        y = np.dot(psf, I_new)
+        y = y[smaller_range]
+        ys.append(y)
+        continue
+    return E_new[smaller_range], ys
+
+
+def makePSF(a, E):
+    """make PSF matrix
+
+    a: polnomial fit for FWHM
+    E: energy axis
+    """
     order = len(a)-1
     # get FWHM for each point in the input E array
     FWHM_f = lambda E: sum( a[i]*E**(order-i) for i in range(order+1) )
@@ -293,13 +351,7 @@ def convolve(a, E, I):
     for i, (E1, fwhm1) in enumerate(zip(E_new, FWHM)):
         psf[i] = gaussian(E_new - E1, fwhm1/2.355) * dE
         continue
-    I_new = np.interp(E_new, E, I)
-    I_new[E_new<E[0]] = 0; I_new[E_new>E[-1]] = 0
-    # convolve
-    y = np.dot(psf, I_new)
-    #
-    smaller_range = (E_new>E[0]-FWHM0) * (E_new<E[-1]+FWHM1)
-    return E_new[smaller_range], y[smaller_range]
+    return E_new, FWHM_f, psf
 
 
 def gaussian(x, sigma):
@@ -321,3 +373,15 @@ def dataarr_from_uploaded_ascii(uploaded_contents):
     doshist = read_dos.doshist_fromascii(f.name)
     os.unlink(f.name)
     return np.array([doshist.energy, doshist.I]).T
+
+def binfile_from_uploaded(uploaded_contents, uploaded_filename):
+    content_type, content_string = uploaded_contents.split(',')
+    import base64; decoded = base64.b64decode(content_string)
+    import tempfile
+    tmpdir = tempfile.mkdtemp()
+    path = os.path.join(tmpdir, uploaded_filename)
+    f = open(path, 'w')
+    f.write(decoded)
+    f.close()
+    # print path
+    return path
