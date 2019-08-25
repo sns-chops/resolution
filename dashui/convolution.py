@@ -68,7 +68,7 @@ class WidgetFactory:
                 dcc.Input(id=self.qgrid_dim_input_id, type='number', value=31, max=51, min=11),
                 html.Label('Number of Q samples'),
                 dcc.Input(id=self.Nqsamples, type='number', value=1e5, min=1e4, max=1e6),
-                convolution_panel(self.phonopy_upload_widget_id, self.IQE_plot_widget_Id), 
+                convolution_panel(self.phonopy_upload_widget_id, self.IQE_plot_widget_Id, 'DFT FORCE_CONSTANTS'), 
             ], style = style)
         ])
 
@@ -87,7 +87,7 @@ class WidgetFactory:
                 html.A("Example 2-col ascii file",
                        href="https://raw.githubusercontent.com/sns-chops/resolution/1e76dda84c5c4a356ba9806a8728c449fd77fa0f/dashui/data/graphite-DFT-DOS.dat",
                        target="_blank"),
-                convolution_panel(self.upload_widget_id, self.plot_widget_id), # convolution
+                convolution_panel(self.upload_widget_id, self.plot_widget_id, "Energy spectrum"), # convolution
             ], style = style)
         ])
 
@@ -211,19 +211,27 @@ class WidgetFactory:
         os.unlink(zipfile)
         # plot sqe
         import plotly.graph_objs as go
-        fig = go.Figure(data=[go.Heatmap(
-            z=sqe.I.T,
-            x=sqe.Q,
-            y=sqe.E,
-            colorscale='Viridis')]
+        fig = go.Figure(
+            data=[go.Heatmap(
+                z=sqe.I.T,
+                x=sqe.Q,
+                y=sqe.E,
+                colorscale='Viridis')],
+            layout = {
+                'title': 'Original',
+            }
         )
         # convolve
         E_new, Q, I_new = self.convolveSQE(sqe, Ei, *args)
-        fig2 = go.Figure(data=[go.Heatmap(
-            z=I_new.T,
-            x=Q,
-            y=E_new,
-            colorscale='Viridis')]
+        fig2 = go.Figure(
+            data=[go.Heatmap(
+                z=I_new.T,
+                x=Q,
+                y=E_new,
+                colorscale='Viridis')],
+            layout = {
+                'title': 'Convolved',
+            }
         )
         graph_style ={'height': '25em', 'width': '30em'}
         inline = {"display": "inline-flex"}
@@ -304,7 +312,7 @@ def IEplot(IE, title, display="inline-block"):
     
 
 
-def convolution_panel(upload_widget_id, plot_widget_id):
+def convolution_panel(upload_widget_id, plot_widget_id, filetype):
     return html.Div([
         # plot
         dcc.Loading(
@@ -317,7 +325,8 @@ def convolution_panel(upload_widget_id, plot_widget_id):
                 id=upload_widget_id,
                 children=html.Div([
                     'Drag and Drop or ',
-                    html.A('Select a file')
+                    html.A('Select a file'),
+                    ' for ', filetype,
                 ]),
                 style={
                     'width': '100%',
