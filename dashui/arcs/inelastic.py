@@ -101,8 +101,9 @@ def build_callbacks(app):
          dd.Output(conv_widget_factory.plot_widget_id, component_property='children'),
          dd.Output(conv_widget_factory.IQE_plot_widget_Id, component_property='children'),
         ],
-        [dd.Input('arcs-inel-tabs', 'value'),
-         dd.Input('arcs-calculate-button', 'n_clicks'),
+        [dd.Input('arcs-calculate-button', 'n_clicks'),
+         dd.Input('arcs-inel-tabs', 'value'),
+         dd.Input(conv_widget_factory.tabs_id, 'value'),
          dd.Input(conv_widget_factory.upload_widget_id, 'contents'),
          dd.Input(conv_widget_factory.apply_excitations_button_id, 'n_clicks'),
          dd.Input(conv_widget_factory.phonopy_upload_widget_id, 'contents'),
@@ -121,8 +122,9 @@ def build_callbacks(app):
         )
     def update_output_div(
             #inputs
-            output_tab,
-            calc_btn, uploaded_contents, apply_excitation_btn,
+            calc_btn,
+            output_tab, conv_tab,
+            uploaded_contents, apply_excitation_btn,
             phonopy_uploaded_contents,
             # states
             uploaded_filename, uploaded_last_modified,
@@ -152,20 +154,22 @@ def build_callbacks(app):
                 status = str(e)
             else:
                 pass
-        else:
+        else:            
             # convolution
-            example_panel_excitation_placeholder, excitation_input_status, example_panel_plots \
-                = conv_widget_factory.updateExamplePanel(
-                    excitation_input_text, Ei, chopper_select, chopper_freq)
-            convplot = conv_widget_factory.createPlotForUploadedData(
-                uploaded_contents, uploaded_filename, uploaded_last_modified,
-                Ei, chopper_select, chopper_freq,
-            )
-            iqeplot = conv_widget_factory.updateSQEConvolution(
-                phonopy_uploaded_contents, phonopy_uploaded_filename, 
-                qgrid_dim, Nqsamples,
-                Ei, chopper_select, chopper_freq,
-            )
+            if conv_tab == 'I(E)':
+                example_panel_excitation_placeholder, excitation_input_status, example_panel_plots \
+                    = conv_widget_factory.updateExamplePanel(
+                        excitation_input_text, Ei, chopper_select, chopper_freq)
+                convplot = conv_widget_factory.createPlotForUploadedData(
+                    uploaded_contents, uploaded_filename, uploaded_last_modified,
+                    Ei, chopper_select, chopper_freq,
+                )
+            elif conv_tab == 'I(Q,E)':
+                iqeplot = conv_widget_factory.updateSQEConvolution(
+                    phonopy_uploaded_contents, phonopy_uploaded_filename, 
+                    qgrid_dim, Nqsamples,
+                    Ei, chopper_select, chopper_freq,
+                )
         ret = (
             curve, status, downloadlink, summary, python_formula, matlab_formula,
             # convolution related

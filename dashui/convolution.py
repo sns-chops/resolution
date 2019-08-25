@@ -44,7 +44,7 @@ class WidgetFactory:
         self.phonopy_upload_widget_id = '%s-convolution-phonopy-upload' % instrument
         self.IQE_plot_widget_Id = '%s-convolution-IQE-plot' % instrument
         # 
-        self.tab_style = dict(border="1px solid lightgray", padding='1em')
+        self.tab_style = dict(padding='1em')
         return
 
     def createInterface(self, app):
@@ -53,12 +53,12 @@ class WidgetFactory:
                 dcc.Tab(label='I(E)', children=[self.createIEInterface(app)], value='I(E)'),
                 dcc.Tab(label='I(Q,E)', children=[self.createIQEInterface(app)], value='I(Q,E)'),
             ], value='I(E)', vertical=True)
-        ], style=dict(border="1px solid lightgray", padding='1em'))
+        ], style=dict(padding='none'))
 
     def createIQEInterface(self, app):
         style = self.tab_style.copy()
         style['width'] = "60em"
-        return html.Div([
+        return \
             html.Div([
                 html.H5('Powder I(Q,E) spectrum'),
                 html.Label('Number of Q grid points along one dimension within 1BZ'),
@@ -76,7 +76,7 @@ class WidgetFactory:
                        target="_blank"),
                 convolution_panel(self.phonopy_upload_widget_id, self.IQE_plot_widget_Id, 'DFT FORCE_CONSTANTS'), 
             ], style = style)
-        ])
+        
 
     def createIEInterface(self, app):
         style = self.tab_style.copy()
