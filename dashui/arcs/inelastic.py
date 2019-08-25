@@ -59,9 +59,6 @@ def build_interface(app):
     plotcontainer = html.Div([formula, plot, download], style=tab_style)
     #
     conv = conv_widget_factory.createInterface(app)
-    conv.style = tab_style.copy()
-    conv.style['width'] = '60em'
-
     return html.Div(children=[
 
         # input fields
@@ -102,15 +99,22 @@ def build_callbacks(app):
          dd.Output(conv_widget_factory.excitation_input_status_id, 'children'),
          dd.Output(conv_widget_factory.conv_example_plots_id, component_property='children'),
          dd.Output(conv_widget_factory.plot_widget_id, component_property='children'),
+         dd.Output(conv_widget_factory.IQE_plot_widget_Id, component_property='children'),
         ],
         [dd.Input('arcs-calculate-button', 'n_clicks'),
+         dd.Input('arcs-inel-tabs', 'value'),
+         dd.Input(conv_widget_factory.tabs_id, 'value'),
          dd.Input(conv_widget_factory.upload_widget_id, 'contents'),
          dd.Input(conv_widget_factory.apply_excitations_button_id, 'n_clicks'),
-         dd.Input('arcs-inel-tabs', 'value'),
+         dd.Input(conv_widget_factory.phonopy_upload_widget_id, 'contents'),
         ],
         [dd.State(conv_widget_factory.upload_widget_id, 'filename'),
          dd.State(conv_widget_factory.upload_widget_id, 'last_modified'),
+         dd.State(conv_widget_factory.phonopy_upload_widget_id, 'filename'),
+         dd.State(conv_widget_factory.phonopy_upload_widget_id, 'last_modified'),
          dd.State(conv_widget_factory.excitation_input_id, 'value'),
+         dd.State(conv_widget_factory.qgrid_dim_input_id, 'value'),
+         dd.State(conv_widget_factory.Nqsamples, 'value'), 
          dd.State(component_id='arcs_chopper_select', component_property='value'),
          dd.State(component_id='arcs_chopper_freq', component_property='value'),
          dd.State(component_id='arcs_Ei_input', component_property='value'),
@@ -118,14 +122,16 @@ def build_callbacks(app):
         )
     def update_output_div(
             #inputs
-            calc_btn, uploaded_contents, apply_excitation_btn,
+            calc_btn,
+            output_tab, conv_tab,
+            uploaded_contents, apply_excitation_btn,
+            phonopy_uploaded_contents,
             # states
-            output_tab,
             uploaded_filename, uploaded_last_modified,
+            phonopy_uploaded_filename, phonopy_uploaded_last_modified,
             excitation_input_text,
+            qgrid_dim, Nqsamples,
             chopper_select, chopper_freq, Ei):
-        print output_tab
-        # summary and plot
         failed = False
         status = ""
         curve = {}
@@ -137,7 +143,9 @@ def build_callbacks(app):
         excitation_input_status = ''
         example_panel_plots = ''
         convplot = ''
+        iqeplot = ''
         if output_tab in ['summary', 'plot']:
+            # summary and plot
             try:
                 summary, python_formula, matlab_formula, curve, downloadlink = update_summary_and_plot(
                     Ei, chopper_select, chopper_freq)
@@ -146,23 +154,29 @@ def build_callbacks(app):
                 status = str(e)
             else:
                 pass
-        else:
+        else:            
             # convolution
-            example_panel_excitation_placeholder, excitation_input_status, example_panel_plots \
-                = conv_widget_factory.updateExamplePanel(
-                    excitation_input_text, Ei, chopper_select, chopper_freq)
-            convplot = conv_widget_factory.createPlotForUploadedData(
-                uploaded_contents, uploaded_filename, uploaded_last_modified,
-                Ei, chopper_select, chopper_freq,
-            )
-            
-        return (
+            if conv_tab == 'I(E)':
+                example_panel_excitation_placeholder, excitation_input_status, example_panel_plots \
+                    = conv_widget_factory.updateExamplePanel(
+                        excitation_input_text, Ei, chopper_select, chopper_freq)
+                convplot = conv_widget_factory.createPlotForUploadedData(
+                    uploaded_contents, uploaded_filename, uploaded_last_modified,
+                    Ei, chopper_select, chopper_freq,
+                )
+            elif conv_tab == 'I(Q,E)':
+                iqeplot = conv_widget_factory.updateSQEConvolution(
+                    phonopy_uploaded_contents, phonopy_uploaded_filename, 
+                    qgrid_dim, Nqsamples,
+                    Ei, chopper_select, chopper_freq,
+                )
+        ret = (
             curve, status, downloadlink, summary, python_formula, matlab_formula,
             # convolution related
             example_panel_excitation_placeholder, excitation_input_status, example_panel_plots,
-            convplot
+            convplot, iqeplot
         )
-            
+        return ret
 
     @app.server.route('/download/arcs')
     def download_csv():

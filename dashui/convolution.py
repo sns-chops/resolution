@@ -28,6 +28,9 @@ class WidgetFactory:
         self.instrument = instrument
         self.instrument_params = instrument_params
         self.res_function_calculator = res_function_calculator
+        # IDs
+        self.tabs_id = '%s-convolution-tabs' % self.instrument
+        # I(E)
         self.upload_widget_id = '%s-convolution-upload' % instrument
         self.plot_widget_id = '%s-convolution-plot' % instrument
         self.conv_example_id = "%s-conv-example" % self.instrument
@@ -35,9 +38,55 @@ class WidgetFactory:
         self.excitation_input_status_id = '%s-excitation-input-status' % self.instrument
         self.conv_example_plots_id = '%s-conv-example-plots' % self.instrument
         self.apply_excitations_button_id = '%s-apply-excitations' % self.instrument
+        # I(Q,E)
+        self.qgrid_dim_input_id = '%s-iqe-qgrid-dim-input' % self.instrument
+        self.Nqsamples = '%s-iqe-qsample-input' % self.instrument
+        self.phonopy_upload_widget_id = '%s-convolution-phonopy-upload' % instrument
+        self.IQE_plot_widget_Id = '%s-convolution-IQE-plot' % instrument
+        # 
+        self.tab_style = dict(padding='1em')
         return
 
     def createInterface(self, app):
+        return html.Div([
+            dcc.Tabs(id=self.tabs_id, children=[
+                dcc.Tab(label='I(E)', children=[self.createIEInterface(app)], value='I(E)'),
+                dcc.Tab(label='I(Q,E)', children=[self.createIQEInterface(app)], value='I(Q,E)'),
+            ], value='I(E)', vertical=True)
+        ], style=dict(padding='none'))
+
+    def createIQEInterface(self, app):
+        style = self.tab_style.copy()
+        style['width'] = "60em"
+        return \
+            html.Div([
+                html.H5('Powder I(Q,E) spectrum'),
+                html.Label('Number of Q grid points along one dimension within 1BZ'),
+                dcc.Input(id=self.qgrid_dim_input_id, type='number', value=31, max=51, min=11),
+                html.Label('Number of Q samples'),
+                dcc.Input(id=self.Nqsamples, type='number', value=1e5, min=1e4, max=1e6),
+                html.Div(),
+                "Example DFT force constants input zip files: ",
+                html.A("silicon",
+                       href="https://github.com/sns-chops/resolution/raw/dash-iqe/dashui/data/Si.zip",
+                       target="_blank"),
+                " and ",
+                html.A("graphite",
+                       href="https://github.com/sns-chops/resolution/raw/dash-iqe/dashui/data/graphite.zip",
+                       target="_blank"),
+                html.Div(),
+                "Example SQE hdf5 file: ",
+                html.A("graphite S(Q,E) for Ei=300.meV, T=300K computed from DFT Force constants",
+                       href="https://github.com/sns-chops/resolution/raw/dash-iqe/dashui/data/graphite-allphonon-Ei_300-T_300-IDF.h5",
+                       target="_blank"),
+                convolution_panel(
+                    self.phonopy_upload_widget_id, self.IQE_plot_widget_Id, 'DFT force constants zip file, or SQE hdf5 file'), 
+            ], style = style)
+        
+
+    def createIEInterface(self, app):
+        style = self.tab_style.copy()
+        style['width'] = "60em"
         return html.Div([
             html.Div([
                 html.H5('Energy spectrum (e.g., phonon DOS)'),
@@ -50,8 +99,8 @@ class WidgetFactory:
                 html.A("Example 2-col ascii file",
                        href="https://raw.githubusercontent.com/sns-chops/resolution/1e76dda84c5c4a356ba9806a8728c449fd77fa0f/dashui/data/graphite-DFT-DOS.dat",
                        target="_blank"),
-                convolution_panel(self.upload_widget_id, self.plot_widget_id), # convolution
-            ], style = {"margin-top": "1em"}),
+                convolution_panel(self.upload_widget_id, self.plot_widget_id, "Energy spectrum"), # convolution
+            ], style = style)
         ])
 
     def createPlotForUploadedData(self, uploaded_contents, uploaded_filename, uploaded_last_modified, Ei, *args):
@@ -156,22 +205,101 @@ class WidgetFactory:
             plots = html.Div([IEplot((E,I), "Original"), IEplot((cE,cI), "Convolved")])
         else:
             plots = ''
-        return excitations_text, status, plots        
+        return excitations_text, status, plots
+
+    def updateSQEConvolution(
+            self, uploaded_contents, uploaded_filename,
+            qgrid_dim, Nqsamples,
+            Ei, *args):
+        if uploaded_contents is None: return
+        binfile = binfile_from_uploaded(uploaded_contents, uploaded_filename)
+        if binfile.endswith('.zip'):
+            zipfile = binfile
+            # compute sqe
+            Eaxis = np.linspace(-.2*Ei, .9*Ei, 110)
+            from mcni.utils import conversion
+            Qmax = conversion.e2k(Ei)*2
+            Qaxis = np.linspace(0, Qmax, 100)
+            from phonon import SQE_from_FCzip
+            sqe = SQE_from_FCzip(Qaxis, Eaxis, zipfile, Ei, max_det_angle=140., T=300., qgrid_dim=qgrid_dim, Nqpoints=Nqsamples)
+            os.unlink(zipfile)
+        elif binfile.endswith('.h5'):
+            import histogram.hdf as hh
+            sqe = hh.load(binfile)
+        # plot sqe
+        z = sqe.I.T
+        zmedian = np.median(z[z>0])
+        import plotly.graph_objs as go
+        fig = go.Figure(
+            data=[go.Heatmap(
+                z=z,
+                x=sqe.Q,
+                y=sqe.E,
+                zmin=0., zmax=zmedian*5,
+                colorscale='Viridis')],
+            layout = {
+                'title': 'Original',
+            }
+        )
+        # convolve
+        E_new, Q, I_new = self.convolveSQE(sqe, Ei, *args)
+        z=I_new.T
+        zmedian = np.median(z[z>0])
+        fig2 = go.Figure(
+            data=[go.Heatmap(
+                z=z,
+                x=Q,
+                y=E_new,
+                zmin=0., zmax=zmedian*5,
+                colorscale='Viridis')],
+            layout = {
+                'title': 'Convolved',
+            }
+        )
+        graph_style ={'height': '25em', 'width': '30em'}
+        inline = {"display": "inline-flex"}
+        return html.Div([
+            html.Div([dcc.Graph(figure=fig, style=graph_style)], style=inline),
+            html.Div([dcc.Graph(figure=fig2, style=graph_style)], style=inline),
+        ], style = {"display": "inline-flex"})
 
     # utils
+    def convolveSQE(self, IQE, Ei, *args):
+        max_det_angle = 140. * np.pi/180.
+        a = self.calc_res_a(Ei, *args)
+        E_new, Q, I_new = convolveSQE(a, IQE)
+        mask = np.zeros(I_new.shape, dtype=bool)
+        from mcni.utils import conversion
+        ki = conversion.e2k(Ei)
+        for iE in range(E_new.size):
+            E1 = E_new[iE]
+            if E1>Ei:
+                mask[:, iE] = 1
+                continue
+            Ef1 = Ei-E1
+            kf1 = conversion.e2k(Ef1)
+            Qmin = abs(ki-kf1)
+            Qmax = np.sqrt(ki*ki+kf1*kf1-2*ki*kf1*np.cos(max_det_angle))
+            mask[Q<Qmin, iE]=1
+            mask[Q>Qmax, iE]=1
+        I_new[mask] = np.nan
+        return E_new, Q, I_new
+    
     def convolve(self, IE, *args):
+        a = self.calc_res_a(*args)
+        # convolve
+        E, I = IE
+        E2, I2 = convolve(a, E, I)
+        return E2, I2
+
+    def calc_res_a(self, *args):
         # get resolution function
         E1, res = self.res_function_calculator(*args)
         if np.any(res!=res):
             raise RuntimeError("invalid resolution function")
         # fit
         order = 3
-        a = np.polyfit(E1, res, order)
-        # convolve
-        E, I = IE
-        E2, I2 = convolve(a, E, I)
-        return E2, I2
-
+        return np.polyfit(E1, res, order)
     
 def IE_from_excitations(excitations, Emin, Emax, N):
     """Create I(E) curve from a bunch of excitations
@@ -223,12 +351,12 @@ def IEplot(IE, title, display="inline-block"):
     
 
 
-def convolution_panel(upload_widget_id, plot_widget_id):
+def convolution_panel(upload_widget_id, plot_widget_id, filetype):
     return html.Div([
         # plot
         dcc.Loading(
             html.Div(id=plot_widget_id, style=dict(
-                width="40em", margin='.3em',
+                width="40em", margin='.3em', display="inline-flex",
             ))
         ),
         html.Div(
@@ -236,7 +364,8 @@ def convolution_panel(upload_widget_id, plot_widget_id):
                 id=upload_widget_id,
                 children=html.Div([
                     'Drag and Drop or ',
-                    html.A('Select a file')
+                    html.A('Select a file'),
+                    ' for ', filetype,
                 ]),
                 style={
                     'width': '100%',
@@ -259,6 +388,52 @@ def convolve(a, E, I):
     '''a: polynomial coeffs
     E,I: input spectrum
     '''
+    E_new, FWHM_f, psf = makePSF(a, E)
+    ys = []
+    FWHM0 = FWHM_f(E[0])
+    FWHM1 = FWHM_f(E[-1])
+    smaller_range = (E_new>E[0]-FWHM0) * (E_new<E[-1]+FWHM1)
+    I_new = np.interp(E_new, E, I)
+    I_new[E_new<E[0]] = 0; I_new[E_new>E[-1]] = 0
+    # convolve
+    y = np.dot(psf, I_new)
+    return E_new[smaller_range], y[smaller_range]
+
+def convolveSQE(a, SQE):
+    E = SQE.E; Q = SQE.Q
+    Is = SQE.I.copy()
+    mask = Is!=Is
+    Is[Is!=Is] = 0
+    E_new, I_new_list = convolve_spectra(a, E, Is)
+    return E_new, Q, np.array(I_new_list)
+
+def convolve_spectra(a, E, Is):
+    '''a: polynomial coeffs
+    E: input energy axis
+    Is: a list of spectra
+    '''
+    E_new, FWHM_f, psf = makePSF(a, E)
+    ys = []
+    FWHM0 = FWHM_f(E[0])
+    FWHM1 = FWHM_f(E[-1])
+    smaller_range = (E_new>E[0]-FWHM0) * (E_new<E[-1]+FWHM1)
+    for i, I in enumerate(Is):
+        I_new = np.interp(E_new, E, I)
+        I_new[E_new<E[0]] = 0; I_new[E_new>E[-1]] = 0
+        # convolve
+        y = np.dot(psf, I_new)
+        y = y[smaller_range]
+        ys.append(y)
+        continue
+    return E_new[smaller_range], ys
+
+
+def makePSF(a, E):
+    """make PSF matrix
+
+    a: polnomial fit for FWHM
+    E: energy axis
+    """
     order = len(a)-1
     # get FWHM for each point in the input E array
     FWHM_f = lambda E: sum( a[i]*E**(order-i) for i in range(order+1) )
@@ -277,13 +452,7 @@ def convolve(a, E, I):
     for i, (E1, fwhm1) in enumerate(zip(E_new, FWHM)):
         psf[i] = gaussian(E_new - E1, fwhm1/2.355) * dE
         continue
-    I_new = np.interp(E_new, E, I)
-    I_new[E_new<E[0]] = 0; I_new[E_new>E[-1]] = 0
-    # convolve
-    y = np.dot(psf, I_new)
-    #
-    smaller_range = (E_new>E[0]-FWHM0) * (E_new<E[-1]+FWHM1)
-    return E_new[smaller_range], y[smaller_range]
+    return E_new, FWHM_f, psf
 
 
 def gaussian(x, sigma):
@@ -305,3 +474,15 @@ def dataarr_from_uploaded_ascii(uploaded_contents):
     doshist = read_dos.doshist_fromascii(f.name)
     os.unlink(f.name)
     return np.array([doshist.energy, doshist.I]).T
+
+def binfile_from_uploaded(uploaded_contents, uploaded_filename):
+    content_type, content_string = uploaded_contents.split(',')
+    import base64; decoded = base64.b64decode(content_string)
+    import tempfile
+    tmpdir = tempfile.mkdtemp()
+    path = os.path.join(tmpdir, uploaded_filename)
+    f = open(path, 'w')
+    f.write(decoded)
+    f.close()
+    # print path
+    return path

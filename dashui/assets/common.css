@@ -11,3 +11,7 @@ button:hover {
 button:focus {
     color: white;
 }
+
+div.tab-parent>div.tab-content {
+    border: 1px solid #f1f1f1;
+}

@@ -43,7 +43,7 @@ for instr in instruments:
 def main():
     import sys
     if len(sys.argv)>1 and sys.argv[1] == 'debug':
-        app.run_server(debug=True)
+        app.run_server(debug=True, threaded=True)
     else:
         from waitress import serve
         serve(app.server, host='0.0.0.0', port=8050)
