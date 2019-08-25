@@ -112,6 +112,8 @@ def build_callbacks(app):
          dd.State(conv_widget_factory.phonopy_upload_widget_id, 'filename'),
          dd.State(conv_widget_factory.phonopy_upload_widget_id, 'last_modified'),
          dd.State(conv_widget_factory.excitation_input_id, 'value'),
+         dd.State(conv_widget_factory.qgrid_dim_input_id, 'value'),
+         dd.State(conv_widget_factory.Nqsamples, 'value'), 
          dd.State(component_id='arcs_chopper_select', component_property='value'),
          dd.State(component_id='arcs_chopper_freq', component_property='value'),
          dd.State(component_id='arcs_Ei_input', component_property='value'),
@@ -126,6 +128,7 @@ def build_callbacks(app):
             uploaded_filename, uploaded_last_modified,
             phonopy_uploaded_filename, phonopy_uploaded_last_modified,
             excitation_input_text,
+            qgrid_dim, Nqsamples,
             chopper_select, chopper_freq, Ei):
         failed = False
         status = ""
@@ -159,7 +162,10 @@ def build_callbacks(app):
                 Ei, chopper_select, chopper_freq,
             )
             iqeplot = conv_widget_factory.updateSQEConvolution(
-                phonopy_uploaded_contents, phonopy_uploaded_filename, Ei, chopper_select, chopper_freq)
+                phonopy_uploaded_contents, phonopy_uploaded_filename, 
+                qgrid_dim, Nqsamples,
+                Ei, chopper_select, chopper_freq,
+            )
         ret = (
             curve, status, downloadlink, summary, python_formula, matlab_formula,
             # convolution related

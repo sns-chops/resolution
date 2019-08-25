@@ -39,6 +39,8 @@ class WidgetFactory:
         self.conv_example_plots_id = '%s-conv-example-plots' % self.instrument
         self.apply_excitations_button_id = '%s-apply-excitations' % self.instrument
         # I(Q,E)
+        self.qgrid_dim_input_id = '%s-iqe-qgrid-dim-input' % self.instrument
+        self.Nqsamples = '%s-iqe-qsample-input' % self.instrument
         self.phonopy_upload_widget_id = '%s-convolution-phonopy-upload' % instrument
         self.IQE_plot_widget_Id = '%s-convolution-IQE-plot' % instrument
         # 
@@ -55,12 +57,17 @@ class WidgetFactory:
 
     def createIQEInterface(self, app):
         style = self.tab_style.copy()
+        style['width'] = "60em"
         return html.Div([
             html.Div([
                 html.H5('Powder I(Q,E) spectrum'),
                 html.A("Example phonopy input file",
                        href="https://raw.githubusercontent.com/sns-chops/resolution/1e76dda84c5c4a356ba9806a8728c449fd77fa0f/dashui/data/graphite-DFT-DOS.dat",
                        target="_blank"),
+                html.Label('Number of Q grid points along one dimension within 1BZ'),
+                dcc.Input(id=self.qgrid_dim_input_id, type='number', value=31, max=51, min=11),
+                html.Label('Number of Q samples'),
+                dcc.Input(id=self.Nqsamples, type='number', value=1e5, min=1e4, max=1e6),
                 convolution_panel(self.phonopy_upload_widget_id, self.IQE_plot_widget_Id), 
             ], style = style)
         ])
@@ -188,7 +195,10 @@ class WidgetFactory:
             plots = ''
         return excitations_text, status, plots
 
-    def updateSQEConvolution(self, uploaded_contents, uploaded_filename, Ei, *args):
+    def updateSQEConvolution(
+            self, uploaded_contents, uploaded_filename,
+            qgrid_dim, Nqsamples,
+            Ei, *args):
         if uploaded_contents is None: return
         zipfile = binfile_from_uploaded(uploaded_contents, uploaded_filename)
         # compute sqe
@@ -197,7 +207,7 @@ class WidgetFactory:
         Qmax = conversion.e2k(Ei)*2
         Qaxis = np.linspace(0, Qmax, 100)
         from phonon import SQE_from_FCzip
-        sqe = SQE_from_FCzip(Qaxis, Eaxis, zipfile, Ei, max_det_angle=140., T=300.)
+        sqe = SQE_from_FCzip(Qaxis, Eaxis, zipfile, Ei, max_det_angle=140., T=300., qgrid_dim=qgrid_dim, Nqpoints=Nqsamples)
         os.unlink(zipfile)
         # plot sqe
         import plotly.graph_objs as go
@@ -220,7 +230,7 @@ class WidgetFactory:
         return html.Div([
             html.Div([dcc.Graph(figure=fig, style=graph_style)], style=inline),
             html.Div([dcc.Graph(figure=fig2, style=graph_style)], style=inline),
-        ])
+        ], style = {"display": "inline-flex"})
 
     # utils
     def convolveSQE(self, IQE, *args):
@@ -299,7 +309,7 @@ def convolution_panel(upload_widget_id, plot_widget_id):
         # plot
         dcc.Loading(
             html.Div(id=plot_widget_id, style=dict(
-                width="40em", margin='.3em',
+                width="40em", margin='.3em', display="inline-flex",
             ))
         ),
         html.Div(
