@@ -66,7 +66,7 @@ class WidgetFactory:
                 html.Label('Number of Q samples'),
                 dcc.Input(id=self.Nqsamples, type='number', value=1e5, min=1e4, max=1e6),
                 html.Div(),
-                "Example DFT force constants input files: ",
+                "Example DFT force constants input zip files: ",
                 html.A("silicon",
                        href="https://github.com/sns-chops/resolution/raw/dash-iqe/dashui/data/Si.zip",
                        target="_blank"),
