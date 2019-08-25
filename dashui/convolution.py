@@ -74,7 +74,13 @@ class WidgetFactory:
                 html.A("graphite",
                        href="https://github.com/sns-chops/resolution/raw/dash-iqe/dashui/data/graphite.zip",
                        target="_blank"),
-                convolution_panel(self.phonopy_upload_widget_id, self.IQE_plot_widget_Id, 'DFT FORCE_CONSTANTS'), 
+                html.Div(),
+                "Example SQE hdf5 file: ",
+                html.A("graphite S(Q,E) for Ei=300.meV, T=300K computed from DFT Force constants",
+                       href="https://github.com/sns-chops/resolution/raw/dash-iqe/dashui/data/graphite-allphonon-Ei_300-T_300-IDF.h5",
+                       target="_blank"),
+                convolution_panel(
+                    self.phonopy_upload_widget_id, self.IQE_plot_widget_Id, 'DFT force constants zip file, or SQE hdf5 file'), 
             ], style = style)
         
 
@@ -206,15 +212,20 @@ class WidgetFactory:
             qgrid_dim, Nqsamples,
             Ei, *args):
         if uploaded_contents is None: return
-        zipfile = binfile_from_uploaded(uploaded_contents, uploaded_filename)
-        # compute sqe
-        Eaxis = np.linspace(-.2*Ei, .9*Ei, 110)
-        from mcni.utils import conversion
-        Qmax = conversion.e2k(Ei)*2
-        Qaxis = np.linspace(0, Qmax, 100)
-        from phonon import SQE_from_FCzip
-        sqe = SQE_from_FCzip(Qaxis, Eaxis, zipfile, Ei, max_det_angle=140., T=300., qgrid_dim=qgrid_dim, Nqpoints=Nqsamples)
-        os.unlink(zipfile)
+        binfile = binfile_from_uploaded(uploaded_contents, uploaded_filename)
+        if binfile.endswith('.zip'):
+            zipfile = binfile
+            # compute sqe
+            Eaxis = np.linspace(-.2*Ei, .9*Ei, 110)
+            from mcni.utils import conversion
+            Qmax = conversion.e2k(Ei)*2
+            Qaxis = np.linspace(0, Qmax, 100)
+            from phonon import SQE_from_FCzip
+            sqe = SQE_from_FCzip(Qaxis, Eaxis, zipfile, Ei, max_det_angle=140., T=300., qgrid_dim=qgrid_dim, Nqpoints=Nqsamples)
+            os.unlink(zipfile)
+        elif binfile.endswith('.h5'):
+            import histogram.hdf as hh
+            sqe = hh.load(binfile)
         # plot sqe
         import plotly.graph_objs as go
         fig = go.Figure(
@@ -249,9 +260,24 @@ class WidgetFactory:
         ], style = {"display": "inline-flex"})
 
     # utils
-    def convolveSQE(self, IQE, *args):
-        a = self.calc_res_a(*args)
+    def convolveSQE(self, IQE, Ei, *args):
+        a = self.calc_res_a(Ei, *args)
         E_new, Q, I_new = convolveSQE(a, IQE)
+        mask = np.zeros(I_new.shape, dtype=bool)
+        from mcni.utils import conversion
+        ki = conversion.e2k(Ei)
+        for iE in range(E_new.size):
+            E1 = E_new[iE]
+            if E1>Ei:
+                mask[:, iE] = 1
+                continue
+            Ef1 = Ei-E1
+            kf1 = conversion.e2k(Ef1)
+            Qmin = abs(ki-kf1)
+            Qmax = ki+kf1
+            mask[Q<Qmin, iE]=1
+            mask[Q>Qmax, iE]=1
+        I_new[mask] = np.nan
         return E_new, Q, I_new
     
     def convolve(self, IE, *args):
