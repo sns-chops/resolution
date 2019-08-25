@@ -188,7 +188,7 @@ class WidgetFactory:
             plots = ''
         return excitations_text, status, plots
 
-    def updateSQEConvolution(self, uploaded_contents, uploaded_filename, Ei):
+    def updateSQEConvolution(self, uploaded_contents, uploaded_filename, Ei, *args):
         if uploaded_contents is None: return
         zipfile = binfile_from_uploaded(uploaded_contents, uploaded_filename)
         # compute sqe
@@ -207,24 +207,42 @@ class WidgetFactory:
             y=sqe.E,
             colorscale='Viridis')]
         )
-        return dcc.Graph(figure=fig, style={'height': '25em', 'width': '30em'})
         # convolve
-        return
+        E_new, Q, I_new = self.convolveSQE(sqe, Ei, *args)
+        fig2 = go.Figure(data=[go.Heatmap(
+            z=I_new.T,
+            x=Q,
+            y=E_new,
+            colorscale='Viridis')]
+        )
+        graph_style ={'height': '25em', 'width': '30em'}
+        inline = {"display": "inline-flex"}
+        return html.Div([
+            html.Div([dcc.Graph(figure=fig, style=graph_style)], style=inline),
+            html.Div([dcc.Graph(figure=fig2, style=graph_style)], style=inline),
+        ])
 
     # utils
+    def convolveSQE(self, IQE, *args):
+        a = self.calc_res_a(*args)
+        E_new, Q, I_new = convolveSQE(a, IQE)
+        return E_new, Q, I_new
+    
     def convolve(self, IE, *args):
+        a = self.calc_res_a(*args)
+        # convolve
+        E, I = IE
+        E2, I2 = convolve(a, E, I)
+        return E2, I2
+
+    def calc_res_a(self, *args):
         # get resolution function
         E1, res = self.res_function_calculator(*args)
         if np.any(res!=res):
             raise RuntimeError("invalid resolution function")
         # fit
         order = 3
-        a = np.polyfit(E1, res, order)
-        # convolve
-        E, I = IE
-        E2, I2 = convolve(a, E, I)
-        return E2, I2
-
+        return np.polyfit(E1, res, order)
     
 def IE_from_excitations(excitations, Emin, Emax, N):
     """Create I(E) curve from a bunch of excitations
@@ -325,7 +343,9 @@ def convolve(a, E, I):
 
 def convolveSQE(a, SQE):
     E = SQE.E; Q = SQE.Q
-    Is = SQE.I
+    Is = SQE.I.copy()
+    mask = Is!=Is
+    Is[Is!=Is] = 0
     E_new, I_new_list = convolve_spectra(a, E, Is)
     return E_new, Q, np.array(I_new_list)
 

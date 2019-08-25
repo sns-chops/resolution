@@ -159,7 +159,7 @@ def build_callbacks(app):
                 Ei, chopper_select, chopper_freq,
             )
             iqeplot = conv_widget_factory.updateSQEConvolution(
-                phonopy_uploaded_contents, phonopy_uploaded_filename, Ei)
+                phonopy_uploaded_contents, phonopy_uploaded_filename, Ei, chopper_select, chopper_freq)
         ret = (
             curve, status, downloadlink, summary, python_formula, matlab_formula,
             # convolution related
