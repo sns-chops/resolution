@@ -99,6 +99,7 @@ def build_callbacks(app):
          dd.Output(conv_widget_factory.excitation_input_status_id, 'children'),
          dd.Output(conv_widget_factory.conv_example_plots_id, component_property='children'),
          dd.Output(conv_widget_factory.plot_widget_id, component_property='children'),
+         dd.Output(conv_widget_factory.IQE_plot_widget_Id, component_property='children'),
         ],
         [dd.Input('arcs-inel-tabs', 'value'),
          dd.Input('arcs-calculate-button', 'n_clicks'),
@@ -137,6 +138,7 @@ def build_callbacks(app):
         excitation_input_status = ''
         example_panel_plots = ''
         convplot = ''
+        iqeplot = ''
         if output_tab in ['summary', 'plot']:
             # summary and plot
             try:
@@ -156,12 +158,13 @@ def build_callbacks(app):
                 uploaded_contents, uploaded_filename, uploaded_last_modified,
                 Ei, chopper_select, chopper_freq,
             )
-            conv_widget_factory.updateSQEConvolution(phonopy_uploaded_contents, phonopy_uploaded_filename)
+            iqeplot = conv_widget_factory.updateSQEConvolution(
+                phonopy_uploaded_contents, phonopy_uploaded_filename, Ei)
         ret = (
             curve, status, downloadlink, summary, python_formula, matlab_formula,
             # convolution related
             example_panel_excitation_placeholder, excitation_input_status, example_panel_plots,
-            convplot
+            convplot, iqeplot
         )
         return ret
 

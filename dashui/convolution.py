@@ -188,9 +188,27 @@ class WidgetFactory:
             plots = ''
         return excitations_text, status, plots
 
-    def updateSQEConvolution(self, uploaded_contents, uploaded_filename):
+    def updateSQEConvolution(self, uploaded_contents, uploaded_filename, Ei):
         if uploaded_contents is None: return
         zipfile = binfile_from_uploaded(uploaded_contents, uploaded_filename)
+        # compute sqe
+        Eaxis = np.linspace(-.2*Ei, .9*Ei, 110)
+        from mcni.utils import conversion
+        Qmax = conversion.e2k(Ei)*2
+        Qaxis = np.linspace(0, Qmax, 100)
+        from phonon import SQE_from_FCzip
+        sqe = SQE_from_FCzip(Qaxis, Eaxis, zipfile, Ei, max_det_angle=140., T=300.)
+        os.unlink(zipfile)
+        # plot sqe
+        import plotly.graph_objs as go
+        fig = go.Figure(data=[go.Heatmap(
+            z=sqe.I.T,
+            x=sqe.Q,
+            y=sqe.E,
+            colorscale='Viridis')]
+        )
+        return dcc.Graph(figure=fig, style={'height': '25em', 'width': '30em'})
+        # convolve
         return
 
     # utils
@@ -305,6 +323,11 @@ def convolve(a, E, I):
     y = np.dot(psf, I_new)
     return E_new[smaller_range], y[smaller_range]
 
+def convolveSQE(a, SQE):
+    E = SQE.E; Q = SQE.Q
+    Is = SQE.I
+    E_new, I_new_list = convolve_spectra(a, E, Is)
+    return E_new, Q, np.array(I_new_list)
 
 def convolve_spectra(a, E, Is):
     '''a: polynomial coeffs
