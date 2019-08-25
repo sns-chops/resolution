@@ -61,13 +61,19 @@ class WidgetFactory:
         return html.Div([
             html.Div([
                 html.H5('Powder I(Q,E) spectrum'),
-                html.A("Example phonopy input file",
-                       href="https://raw.githubusercontent.com/sns-chops/resolution/1e76dda84c5c4a356ba9806a8728c449fd77fa0f/dashui/data/graphite-DFT-DOS.dat",
-                       target="_blank"),
                 html.Label('Number of Q grid points along one dimension within 1BZ'),
                 dcc.Input(id=self.qgrid_dim_input_id, type='number', value=31, max=51, min=11),
                 html.Label('Number of Q samples'),
                 dcc.Input(id=self.Nqsamples, type='number', value=1e5, min=1e4, max=1e6),
+                html.Div(),
+                "Example DFT force constants input files: ",
+                html.A("silicon",
+                       href="https://github.com/sns-chops/resolution/raw/dash-iqe/dashui/data/Si.zip",
+                       target="_blank"),
+                " and ",
+                html.A("graphite",
+                       href="https://github.com/sns-chops/resolution/raw/dash-iqe/dashui/data/graphite.zip",
+                       target="_blank"),
                 convolution_panel(self.phonopy_upload_widget_id, self.IQE_plot_widget_Id, 'DFT FORCE_CONSTANTS'), 
             ], style = style)
         ])
@@ -216,6 +222,7 @@ class WidgetFactory:
                 z=sqe.I.T,
                 x=sqe.Q,
                 y=sqe.E,
+                zmin=0., zmax=0.003,
                 colorscale='Viridis')],
             layout = {
                 'title': 'Original',
@@ -228,6 +235,7 @@ class WidgetFactory:
                 z=I_new.T,
                 x=Q,
                 y=E_new,
+                zmin=0., zmax=0.003,
                 colorscale='Viridis')],
             layout = {
                 'title': 'Convolved',
