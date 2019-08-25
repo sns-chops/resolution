@@ -484,5 +484,5 @@ def binfile_from_uploaded(uploaded_contents, uploaded_filename):
     f = open(path, 'w')
     f.write(decoded)
     f.close()
-    # print path
+    print path
     return path

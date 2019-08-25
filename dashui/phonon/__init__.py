@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-import numpy as np, os, glob, shutil, tempfile
+import numpy as np, os, sys, glob, shutil, tempfile
+import threading
+lock = threading.RLock()
 
 
 def SQE_from_FCzip(Qaxis, Eaxis, zippath, Ei, max_det_angle, T=300., qgrid_dim=31, Nqpoints=1e5):
@@ -10,17 +12,19 @@ def SQE_from_FCzip(Qaxis, Eaxis, zippath, Ei, max_det_angle, T=300., qgrid_dim=3
     # create work dir
     workdir = tempfile.mkdtemp()
     # cd
+    lock.acquire()
     saved = os.path.abspath(os.curdir)
     os.chdir(workdir)
     # unzip
     cmd = 'unzip %s' % zippath
     if os.system(cmd): raise IOError("failed to unzip %r" % zippath)
-    # 
+    #
     rt = SQE_from_ForceConstants(Qaxis, Eaxis, workdir, Ei, max_det_angle, T=300, qgrid_dim=qgrid_dim, Nqpoints=Nqpoints)
     # cleanup
     shutil.rmtree(workdir)
     # restore
     os.chdir(saved)
+    lock.release()
     return rt
 
 
