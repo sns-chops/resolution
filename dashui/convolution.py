@@ -227,13 +227,15 @@ class WidgetFactory:
             import histogram.hdf as hh
             sqe = hh.load(binfile)
         # plot sqe
+        z = sqe.I.T
+        zmedian = np.median(z[z>0])
         import plotly.graph_objs as go
         fig = go.Figure(
             data=[go.Heatmap(
-                z=sqe.I.T,
+                z=z,
                 x=sqe.Q,
                 y=sqe.E,
-                zmin=0., zmax=0.003,
+                zmin=0., zmax=zmedian*5,
                 colorscale='Viridis')],
             layout = {
                 'title': 'Original',
@@ -241,12 +243,14 @@ class WidgetFactory:
         )
         # convolve
         E_new, Q, I_new = self.convolveSQE(sqe, Ei, *args)
+        z=I_new.T
+        zmedian = np.median(z[z>0])
         fig2 = go.Figure(
             data=[go.Heatmap(
-                z=I_new.T,
+                z=z,
                 x=Q,
                 y=E_new,
-                zmin=0., zmax=0.003,
+                zmin=0., zmax=zmedian*5,
                 colorscale='Viridis')],
             layout = {
                 'title': 'Convolved',
@@ -261,6 +265,7 @@ class WidgetFactory:
 
     # utils
     def convolveSQE(self, IQE, Ei, *args):
+        max_det_angle = 140. * np.pi/180.
         a = self.calc_res_a(Ei, *args)
         E_new, Q, I_new = convolveSQE(a, IQE)
         mask = np.zeros(I_new.shape, dtype=bool)
@@ -274,7 +279,7 @@ class WidgetFactory:
             Ef1 = Ei-E1
             kf1 = conversion.e2k(Ef1)
             Qmin = abs(ki-kf1)
-            Qmax = ki+kf1
+            Qmax = np.sqrt(ki*ki+kf1*kf1-2*ki*kf1*np.cos(max_det_angle))
             mask[Q<Qmin, iE]=1
             mask[Q>Qmax, iE]=1
         I_new[mask] = np.nan
