@@ -37,12 +37,16 @@ def build_interface(app):
     ]
     # 
     return html.Div(children=[
+        html.H4("Flux(Intensity) vs Resolution"),
         html.Div(Ei_widget_elements, style=dict(width="15em")),
         html.Div([
-            dcc.Graph(
-                id='arcs-flux_vs_fwhm',
-            ),
+            dcc.Graph(id='arcs-flux_vs_fwhm',), # Flux(intensity) vs FWHM
         ], style=dict(width="50em")),
+        # <iframe width="800" height="600" frameborder="0" scrolling="no" src="//plot.ly/~mcvine/30.embed"></iframe>
+        html.H4("Resolution(FWHM) vs Energy"),
+        html.Div([html.Iframe(width="800", height="600", src="//plot.ly/~mcvine/30.embed")]),
+        html.H4("Flux(Intensity) vs Energy"),
+        html.Div([html.Iframe(width="800", height="600", src="//plot.ly/~mcvine/28.embed")]),
     ])
 
 
