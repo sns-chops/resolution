@@ -219,7 +219,7 @@ class WidgetFactory:
         if binfile.endswith('.zip'):
             zipfile = binfile
             # compute sqe
-            Eaxis = np.linspace(-0.2*Ei, .9*Ei, 120)
+            Eaxis = np.linspace(-0.*Ei, .9*Ei, 120)
             from mcni.utils import conversion
             Qmax = conversion.e2k(Ei)*2
             Qaxis = np.linspace(0, Qmax, 100)
