@@ -144,6 +144,8 @@ def build_callbacks(app):
         example_panel_plots = ''
         convplot = ''
         iqeplot = ''
+        # it is necessary to use try-except clause. otherwise the production website
+        # may cease to work after an exception
         try:
             if output_tab in ['summary', 'plot']:
                 # summary and plot
