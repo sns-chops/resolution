@@ -21,7 +21,7 @@ def SQE_from_FCzip(Qaxis, Eaxis, zippath, Ei, max_det_angle, T=300., qgrid_dim=3
         cmd = 'unzip "%s"' % zippath
         if os.system(cmd): raise IOError("failed to unzip %r" % zippath)
         #
-        rt = SQE_from_ForceConstants(Qaxis, Eaxis, workdir, Ei, max_det_angle, T=300, qgrid_dim=qgrid_dim, Nqpoints=Nqpoints)
+        rt = SQE_from_ForceConstants(Qaxis, Eaxis, workdir, Ei, max_det_angle, T=T, qgrid_dim=qgrid_dim, Nqpoints=Nqpoints)
         # cleanup
         shutil.rmtree(workdir)
     except Exception as exc:

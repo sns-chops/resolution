@@ -41,6 +41,7 @@ class WidgetFactory:
         # I(Q,E)
         self.qgrid_dim_input_id = '%s-iqe-qgrid-dim-input' % self.instrument
         self.Nqsamples = '%s-iqe-qsample-input' % self.instrument
+        self.temperature = '%s-iqe-temperature-input' % self.instrument
         self.phonopy_upload_widget_id = '%s-convolution-phonopy-upload' % instrument
         self.IQE_plot_widget_Id = '%s-convolution-IQE-plot' % instrument
         # 
@@ -65,6 +66,10 @@ class WidgetFactory:
                 dcc.Input(id=self.qgrid_dim_input_id, type='number', value=31, max=51, min=11),
                 html.Label('Number of Q samples'),
                 dcc.Input(id=self.Nqsamples, type='number', value=1e5, min=1e4, max=1e6),
+                html.Label('Temperature (Kelvin)'),
+                dcc.Input(id=self.temperature, type='number', value=300, min=0.0001, max=1e6),
+                convolution_panel(
+                    self.phonopy_upload_widget_id, self.IQE_plot_widget_Id, 'DFT force constants zip file, or SQE hdf5 file'), 
                 html.Div(),
                 "Example DFT force constants input zip files: ",
                 html.A("silicon",
@@ -79,8 +84,6 @@ class WidgetFactory:
                 html.A("graphite S(Q,E) for Ei=300.meV, T=300K computed from DFT Force constants",
                        href="https://github.com/sns-chops/resolution/raw/dash-iqe/dashui/data/graphite-allphonon-Ei_300-T_300-IDF.h5",
                        target="_blank"),
-                convolution_panel(
-                    self.phonopy_upload_widget_id, self.IQE_plot_widget_Id, 'DFT force constants zip file, or SQE hdf5 file'), 
             ], style = style)
         
 
@@ -96,10 +99,10 @@ class WidgetFactory:
                     "The comment line should contain the unit of energy/frequency axis: meV or TeraHz",
                     style=dict(margin="1em 0"),
                 ),
+                convolution_panel(self.upload_widget_id, self.plot_widget_id, "Energy spectrum"), # convolution
                 html.A("Example 2-col ascii file",
                        href="https://raw.githubusercontent.com/sns-chops/resolution/1e76dda84c5c4a356ba9806a8728c449fd77fa0f/dashui/data/graphite-DFT-DOS.dat",
                        target="_blank"),
-                convolution_panel(self.upload_widget_id, self.plot_widget_id, "Energy spectrum"), # convolution
             ], style = style)
         ])
 
@@ -209,19 +212,20 @@ class WidgetFactory:
 
     def updateSQEConvolution(
             self, uploaded_contents, uploaded_filename,
-            qgrid_dim, Nqsamples,
+            qgrid_dim, Nqsamples, temperature,
             Ei, *args):
         if uploaded_contents is None: return
         binfile = binfile_from_uploaded(uploaded_contents, uploaded_filename)
         if binfile.endswith('.zip'):
             zipfile = binfile
             # compute sqe
-            Eaxis = np.linspace(-0*Ei, .9*Ei, 120)
+            Eaxis = np.linspace(-0.2*Ei, .9*Ei, 120)
             from mcni.utils import conversion
             Qmax = conversion.e2k(Ei)*2
             Qaxis = np.linspace(0, Qmax, 100)
             from phonon import SQE_from_FCzip
-            sqe = SQE_from_FCzip(Qaxis, Eaxis, zipfile, Ei, max_det_angle=140., T=300., qgrid_dim=qgrid_dim, Nqpoints=Nqsamples)
+            print temperature
+            sqe = SQE_from_FCzip(Qaxis, Eaxis, zipfile, Ei, max_det_angle=140., T=temperature, qgrid_dim=qgrid_dim, Nqpoints=Nqsamples)
             os.unlink(zipfile)
         elif binfile.endswith('.h5'):
             import histogram.hdf as hh

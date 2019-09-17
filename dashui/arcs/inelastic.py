@@ -95,6 +95,7 @@ def build_callbacks(app):
          dd.Output('arcs-summary', 'children'),
          dd.Output('arcs-pychop-polyfit-python-formula', 'children'),
          dd.Output('arcs-pychop-polyfit-matlab-formula', 'children'),
+         # convolution widgets
          dd.Output(conv_widget_factory.excitation_input_id, 'placeholder'),
          dd.Output(conv_widget_factory.excitation_input_status_id, 'children'),
          dd.Output(conv_widget_factory.conv_example_plots_id, component_property='children'),
@@ -103,11 +104,13 @@ def build_callbacks(app):
         ],
         [dd.Input('arcs-calculate-button', 'n_clicks'),
          dd.Input('arcs-inel-tabs', 'value'),
+         # convolution widgets
          dd.Input(conv_widget_factory.tabs_id, 'value'),
          dd.Input(conv_widget_factory.upload_widget_id, 'contents'),
          dd.Input(conv_widget_factory.apply_excitations_button_id, 'n_clicks'),
          dd.Input(conv_widget_factory.phonopy_upload_widget_id, 'contents'),
         ],
+        # convolution widgets
         [dd.State(conv_widget_factory.upload_widget_id, 'filename'),
          dd.State(conv_widget_factory.upload_widget_id, 'last_modified'),
          dd.State(conv_widget_factory.phonopy_upload_widget_id, 'filename'),
@@ -115,6 +118,8 @@ def build_callbacks(app):
          dd.State(conv_widget_factory.excitation_input_id, 'value'),
          dd.State(conv_widget_factory.qgrid_dim_input_id, 'value'),
          dd.State(conv_widget_factory.Nqsamples, 'value'), 
+         dd.State(conv_widget_factory.temperature, 'value'), 
+         # instrument configuration
          dd.State(component_id='arcs_chopper_select', component_property='value'),
          dd.State(component_id='arcs_chopper_freq', component_property='value'),
          dd.State(component_id='arcs_Ei_input', component_property='value'),
@@ -130,7 +135,7 @@ def build_callbacks(app):
             uploaded_filename, uploaded_last_modified,
             phonopy_uploaded_filename, phonopy_uploaded_last_modified,
             excitation_input_text,
-            qgrid_dim, Nqsamples,
+            qgrid_dim, Nqsamples, temperature,
             chopper_select, chopper_freq, Ei):
         failed = False
         status = ""
@@ -164,7 +169,7 @@ def build_callbacks(app):
                 elif conv_tab == 'I(Q,E)':
                     iqeplot = conv_widget_factory.updateSQEConvolution(
                         phonopy_uploaded_contents, phonopy_uploaded_filename, 
-                        qgrid_dim, Nqsamples,
+                        qgrid_dim, Nqsamples, temperature,
                         Ei, chopper_select, chopper_freq,
                     )
         except Exception as e:
