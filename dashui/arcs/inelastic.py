@@ -144,32 +144,30 @@ def build_callbacks(app):
         example_panel_plots = ''
         convplot = ''
         iqeplot = ''
-        if output_tab in ['summary', 'plot']:
-            # summary and plot
-            try:
+        try:
+            if output_tab in ['summary', 'plot']:
+                # summary and plot
                 summary, python_formula, matlab_formula, curve, downloadlink = update_summary_and_plot(
                     Ei, chopper_select, chopper_freq)
-            except Exception as e:
-                failed = True
-                status = str(e)
             else:
-                pass
-        else:            
-            # convolution
-            if conv_tab == 'I(E)':
-                example_panel_excitation_placeholder, excitation_input_status, example_panel_plots \
-                    = conv_widget_factory.updateExamplePanel(
-                        excitation_input_text, Ei, chopper_select, chopper_freq)
-                convplot = conv_widget_factory.createPlotForUploadedData(
-                    uploaded_contents, uploaded_filename, uploaded_last_modified,
-                    Ei, chopper_select, chopper_freq,
-                )
-            elif conv_tab == 'I(Q,E)':
-                iqeplot = conv_widget_factory.updateSQEConvolution(
-                    phonopy_uploaded_contents, phonopy_uploaded_filename, 
-                    qgrid_dim, Nqsamples,
-                    Ei, chopper_select, chopper_freq,
-                )
+                # convolution
+                if conv_tab == 'I(E)':
+                    example_panel_excitation_placeholder, excitation_input_status, example_panel_plots \
+                        = conv_widget_factory.updateExamplePanel(
+                            excitation_input_text, Ei, chopper_select, chopper_freq)
+                    convplot = conv_widget_factory.createPlotForUploadedData(
+                        uploaded_contents, uploaded_filename, uploaded_last_modified,
+                        Ei, chopper_select, chopper_freq,
+                    )
+                elif conv_tab == 'I(Q,E)':
+                    iqeplot = conv_widget_factory.updateSQEConvolution(
+                        phonopy_uploaded_contents, phonopy_uploaded_filename, 
+                        qgrid_dim, Nqsamples,
+                        Ei, chopper_select, chopper_freq,
+                    )
+        except Exception as e:
+            failed = True
+            status = str(e)
         ret = (
             curve, status, downloadlink, summary, python_formula, matlab_formula,
             # convolution related
