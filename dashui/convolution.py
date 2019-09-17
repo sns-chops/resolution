@@ -480,6 +480,8 @@ def binfile_from_uploaded(uploaded_contents, uploaded_filename):
     import base64; decoded = base64.b64decode(content_string)
     import tempfile
     tmpdir = tempfile.mkdtemp()
+    # deal with bad filenames
+    uploaded_filename = uploaded_filename.replace('(', '_').replace(')', '_').replace(' ', '_')
     path = os.path.join(tmpdir, uploaded_filename)
     f = open(path, 'w')
     f.write(decoded)
