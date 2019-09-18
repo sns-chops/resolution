@@ -189,7 +189,7 @@ class WidgetFactory:
         error = False
         status = ""
         if not excitations_text.strip():
-            excitations = np.linspace(-.45*Ei, Ei*.9, 8), np.ones(8)
+            excitations = np.linspace(-.45*Ei, Ei*.8, 8), np.ones(8)
             header = '# current configuration. type to change\n# COL1: energy(meV)\tCOL2: intensity\n'
             excitations_text = header + '\n'.join(['%8.3f\t%8.3f' % (e,I) for e, I in zip(*excitations)])
         else:
@@ -271,7 +271,7 @@ class WidgetFactory:
     def convolveSQE(self, IQE, Ei, *args):
         max_det_angle = 140. * np.pi/180.
         a = self.calc_res_a(Ei, *args)
-        E_new, Q, I_new = convolveSQE(a, IQE)
+        E_new, Q, I_new = convolveSQE(a, IQE, Ei)
         mask = np.zeros(I_new.shape, dtype=bool)
         from mcni.utils import conversion
         ki = conversion.e2k(Ei)
@@ -289,11 +289,11 @@ class WidgetFactory:
         I_new[mask] = np.nan
         return E_new, Q, I_new
     
-    def convolve(self, IE, *args):
-        a = self.calc_res_a(*args)
+    def convolve(self, IE, Ei, *args):
+        a = self.calc_res_a(Ei, *args)
         # convolve
         E, I = IE
-        E2, I2 = convolve(a, E, I)
+        E2, I2 = convolve(a, E, I, Ei)
         return E2, I2
 
     def calc_res_a(self, *args):
@@ -388,11 +388,11 @@ def convolution_panel(upload_widget_id, plot_widget_id, filetype):
     ])
 
 
-def convolve(a, E, I):
+def convolve(a, E, I, Ei):
     '''a: polynomial coeffs
     E,I: input spectrum
     '''
-    E_new, FWHM_f, psf = makePSF(a, E)
+    E_new, FWHM_f, psf = makePSF(a, E, Ei)
     ys = []
     FWHM0 = FWHM_f(E[0])
     FWHM1 = FWHM_f(E[-1])
@@ -403,20 +403,20 @@ def convolve(a, E, I):
     y = np.dot(psf, I_new)
     return E_new[smaller_range], y[smaller_range]
 
-def convolveSQE(a, SQE):
+def convolveSQE(a, SQE, Ei):
     E = SQE.E; Q = SQE.Q
     Is = SQE.I.copy()
     mask = Is!=Is
     Is[Is!=Is] = 0
-    E_new, I_new_list = convolve_spectra(a, E, Is)
+    E_new, I_new_list = convolve_spectra(a, E, Is, Ei)
     return E_new, Q, np.array(I_new_list)
 
-def convolve_spectra(a, E, Is):
+def convolve_spectra(a, E, Is, Ei):
     '''a: polynomial coeffs
     E: input energy axis
     Is: a list of spectra
     '''
-    E_new, FWHM_f, psf = makePSF(a, E)
+    E_new, FWHM_f, psf = makePSF(a, E, Ei)
     ys = []
     FWHM0 = FWHM_f(E[0])
     FWHM1 = FWHM_f(E[-1])
@@ -432,7 +432,7 @@ def convolve_spectra(a, E, Is):
     return E_new[smaller_range], ys
 
 
-def makePSF(a, E):
+def makePSF(a, E, Ei):
     """make PSF matrix
 
     a: polnomial fit for FWHM
@@ -453,8 +453,10 @@ def makePSF(a, E):
     # matrix
     N = len(E_new)
     psf = np.zeros((N,N))
+    import asymm
     for i, (E1, fwhm1) in enumerate(zip(E_new, FWHM)):
-        psf[i] = gaussian(E_new - E1, fwhm1/2.355) * dE
+        # psf[i] = gaussian(E_new - E1, fwhm1/2.355) * dE
+        psf[i] = asymm.psf(E1-E_new, E1/Ei, fwhm1)
         continue
     return E_new, FWHM_f, psf
 
