@@ -4,4 +4,5 @@
 
 * [ARCS](https://arcs.pages.ornl.gov/resolution.html)
 * [SEQUOIA](https://sequoia.pages.ornl.gov/resolution.html)
-* [Online application](http://dgsres.mcvine.org)
+* [Online application](http://rez.mcvine.ornl.gov)
+    * The source for the Online application is in dashui folder
