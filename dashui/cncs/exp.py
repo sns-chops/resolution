@@ -1,8 +1,8 @@
 import os, sys
 here = os.path.abspath(os.path.dirname(__file__))
 
-import numpy as np, pandas as pd, scipy as sp
-import plotly, plotly.plotly as py, plotly.figure_factory as ff, plotly.graph_objs as go
+import pandas as pd
+import numpy as np
 
 # data
 exp_int_to_flux = 0.00980989028558523 # https://jupyter.sns.gov/user/lj7/notebooks/dv/sns-chops/resolution/CNCS/PyChop/pychop%20-%20Intensity%20and%20VRes_vs_Ei.ipynb

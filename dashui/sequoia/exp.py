@@ -1,8 +1,8 @@
 import os, sys
 here = os.path.abspath(os.path.dirname(__file__))
 
-import numpy as np, pandas as pd, scipy as sp
-import plotly, plotly.plotly as py, plotly.figure_factory as ff, plotly.graph_objs as go
+import numpy as np, pandas as pd
+import plotly.graph_objs as go
 
 # data
 import resolution_plot

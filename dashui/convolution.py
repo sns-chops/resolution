@@ -1,13 +1,9 @@
-import os, sys
+import os
 here = os.path.abspath(os.path.dirname(__file__))
 
-import dash, flask
-import dash_core_components as dcc
-import dash_html_components as html
-import dash.dependencies as dd
-
+from dash import dcc
+import dash.html as html
 import numpy as np
-import widget_utils as wu
 
 
 def create(instrument='arcs', instrument_params=[], res_function_calculator=None):
@@ -224,7 +220,7 @@ class WidgetFactory:
             Qmax = conversion.e2k(Ei)*2
             Qaxis = np.linspace(0, Qmax, 100)
             from phonon import SQE_from_FCzip
-            print temperature
+            print(temperature)
             sqe = SQE_from_FCzip(Qaxis, Eaxis, zipfile, Ei, max_det_angle=140., T=temperature, qgrid_dim=qgrid_dim, Nqpoints=Nqsamples)
             os.unlink(zipfile)
         elif binfile.endswith('.h5'):
@@ -492,5 +488,5 @@ def binfile_from_uploaded(uploaded_contents, uploaded_filename):
     f = open(path, 'w')
     f.write(decoded)
     f.close()
-    print path
+    print(path)
     return path

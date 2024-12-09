@@ -1,8 +1,8 @@
-import os, sys
+import os
 here = os.path.abspath(os.path.dirname(__file__))
 
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+import dash.html as html
 
 # chopper freqs
 chopper_freqs = range(60, 601, 60)

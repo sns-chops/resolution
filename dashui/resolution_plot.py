@@ -1,9 +1,6 @@
 # coding: utf-8
-
-import os, numpy as np
-import pandas as pd
-import scipy as sp
-import plotly, plotly.plotly as py, plotly.figure_factory as ff, plotly.graph_objs as go
+import numpy as np
+import plotly.graph_objs as go
 
 
 class ExpData:

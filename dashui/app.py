@@ -5,10 +5,9 @@
 # Download: http://localhost:8050/download?chopper_select=ARCS-100-1.5-AST&chopper_freq=600&Ei=100
 
 
-import dash, flask, io
-import dash_core_components as dcc
-import dash_html_components as html
-import dash.dependencies as dd
+import dash
+from dash import dcc
+import dash.html as html
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # external_stylesheets = ['https://codepen.io/chriddyp/pen/gzRdpr.css']
@@ -23,7 +22,7 @@ app.title = "DGS resolution"
 
 import arcs, sequoia, cncs, hyspec
 tab_style=dict(margin='0em 2em')
-instruments = 'arcs sequoia cncs hyspec'.split()
+instruments = ['arcs', 'sequoia', 'cncs', ' hyspec']
 tabs = []
 for instr in instruments:
     interface = eval(instr).build_interface(app)
@@ -33,7 +32,7 @@ for instr in instruments:
 app.layout = html.Div([
     dcc.Tabs(tabs, vertical=True),
 ])
-app.scripts.append_script({"external_url": "/assets/statcounter.js"})
+#app.scripts.append_script({"external_url": "/assets/statcounter.js"})
 
 
 for instr in instruments:

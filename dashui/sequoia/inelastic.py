@@ -1,13 +1,13 @@
-import os, sys
+import os
 here = os.path.abspath(os.path.dirname(__file__))
 
-import dash, flask
-import dash_core_components as dcc
-import dash_html_components as html
+import flask
+from dash import dcc
+import dash.html as html
 import dash.dependencies as dd
 
 import numpy as np
-from . import model as sequoiamodel, exp
+from . import model as sequoiamodel
 import widget_utils as wu
 
 # chopper freqs
