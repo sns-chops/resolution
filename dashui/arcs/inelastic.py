@@ -4,12 +4,12 @@
 # Main app: http://localhost:8050/
 # Download: http://localhost:8050/download?chopper_select=ARCS-100-1.5-AST&chopper_freq=600&Ei=100
 
-import os, sys
+import os
 here = os.path.abspath(os.path.dirname(__file__))
 
-import dash, flask
-import dash_core_components as dcc
-import dash_html_components as html
+import flask
+from dash import dcc
+import dash.html as html
 import dash.dependencies as dd
 
 import numpy as np

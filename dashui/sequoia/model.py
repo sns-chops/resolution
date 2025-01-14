@@ -1,10 +1,7 @@
-
 import os, sys
-# sys.path.insert(0, os.path.expanduser('~/dv'))
 here = os.path.abspath(os.path.dirname(__file__))
-
+sys.path.insert(0, here+'/../..')
 import numpy as np
-
 from PyChop import PyChop2
 
 yamlpath = os.path.join(here, '../../SEQUOIA/PyChop/sequoia-06212019.yaml')

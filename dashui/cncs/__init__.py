@@ -1,10 +1,8 @@
-import os, sys
+import os
 here = os.path.abspath(os.path.dirname(__file__))
 
-import dash, flask, io
-import dash_core_components as dcc
-import dash_html_components as html
-import dash.dependencies as dd
+from dash import dcc
+import dash.html as html
 
 from . import inelastic, elastic
 

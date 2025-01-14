@@ -1,0 +1,11 @@
+name: resolution
+channels:
+    - conda-forge
+dependencies:
+    - dash>=2.18.*
+    - pandas
+    - flask
+    - waitress
+    - pyyaml
+    - scipy
+
