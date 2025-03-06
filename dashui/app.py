@@ -20,6 +20,12 @@ app.title = "DGS resolution"
 # mathjax = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML'
 # app.scripts.append_script({ 'external_url' : mathjax })
 
+def set_headers(response):
+    headers = response.headers
+    value = 'max-age=31556926; includeSubDomains; preload'
+    headers['Strict-Transport-Security'] = value
+    return response
+
 import arcs, sequoia, cncs, hyspec
 tab_style=dict(margin='0em 2em')
 instruments = ['arcs', 'sequoia', 'cncs', ' hyspec']
@@ -32,7 +38,8 @@ for instr in instruments:
 app.layout = html.Div([
     dcc.Tabs(tabs, vertical=True),
 ])
-#app.scripts.append_script({"external_url": "/assets/statcounter.js"})
+app.server.after_request(set_headers)
+
 
 
 for instr in instruments:
@@ -45,7 +52,7 @@ def main():
         app.run_server(debug=True, threaded=True)
     else:
         from waitress import serve
-        serve(app.server, host='0.0.0.0', port=8050)
+        serve(app.server, host='0.0.0.0',port=8050, url_scheme='https')
     
 if __name__ == '__main__': main()
 
