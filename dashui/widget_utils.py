@@ -1,6 +1,6 @@
 import flask, io, numpy as np
 
-def send_file(nparr, filename):
+def send_file(nparr, attachment_filename):
     str_io = io.StringIO()
     np.savetxt(str_io, nparr, delimiter=',')
     mem = io.BytesIO()
@@ -10,7 +10,7 @@ def send_file(nparr, filename):
     return flask.send_file(
         mem,
         mimetype='text/csv',
-        attachment_filename=filename,
+        download_name=attachment_filename,
         as_attachment=True)
 
 
