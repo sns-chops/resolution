@@ -8,9 +8,14 @@
 import dash
 from dash import dcc
 import dash.html as html
+from flask import request
+import os
+import signal
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # external_stylesheets = ['https://codepen.io/chriddyp/pen/gzRdpr.css']
+
+single_user_mode = False
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "DGS resolution"
@@ -46,8 +51,30 @@ for instr in instruments:
     mod = eval(instr)
     mod.build_callbacks(app)
 
+
+
+# Add the shutdown/cleanup route
+@app.server.route("/browser-closed", methods=["POST"])
+def browser_closed():
+    global single_user_mode
+    if single_user_mode:
+        print("Browser window or tab was closed! Server shutting down ...")
+        # Add your server-side cleanup logic here, e.g., deleting temporary files, updating a database, etc.
+        # Note: Do not use this method to shut down the *entire* server in a multi-user environment.
+
+        # If you're running a single-user app and truly want to stop the server process:
+        os.kill(os.getpid(), signal.SIGINT)
+
+    return "OK", 200
+
+
 def main():
     import sys
+    # in single user mode (--single), the server will shut down when the browser window is closed
+    if len(sys.argv)>1 and '--single' in sys.argv:
+        global single_user_mode
+        single_user_mode = True
+
     if len(sys.argv)>1 and sys.argv[1] == 'debug':
         app.run_server(debug=True, threaded=True)
     else:
